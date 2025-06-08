@@ -1,11 +1,23 @@
 import React from "react";
 import loginImage from "../../assets/banner_login_3.png";
 import { Button, Checkbox, Form, Input } from "antd";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
+import { useAuth } from "../../hooks/useAuth";
+import CenteredSpinner from "../common/SpinnerLoading";
 
 const Login = () => {
+  const { login, user, loading } = useAuth();
+
+  if (loading) {
+    return <CenteredSpinner />;
+  }
+
+  if (user) {
+    return <Navigate to="/dashboard" replace/>;
+  }
+
   const onFinish = (values) => {
-    console.log("Success:", values);
+    login(values);
   };
   const onFinishFailed = (errorInfo) => {
     console.log("Failed:", errorInfo);
@@ -29,8 +41,8 @@ const Login = () => {
           </h3>
 
           <p className="text-[12px] my-4 text-slate-500 font-light">
-            Warehouse Admin System – your tool to monitor
-            inventory, process orders, and streamline warehouse operations.
+            Warehouse Admin System – your tool to monitor inventory, process
+            orders, and streamline warehouse operations.
           </p>
 
           {/* form */}
@@ -60,9 +72,7 @@ const Login = () => {
             </Form.Item>
 
             {/* forgot password */}
-            <Link to={'./forgot-password'}>
-              Forgot password ?
-            </Link>
+            <Link to={"./forgot-password"}>Forgot password ?</Link>
 
             <Form.Item label={null}>
               <Button
