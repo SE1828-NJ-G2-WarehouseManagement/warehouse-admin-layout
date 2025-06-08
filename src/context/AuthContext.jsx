@@ -30,8 +30,10 @@ const AuthProvider = ({ children }) => {
     }
 
     try {
-      const { data } = await userService.login(email, password);
+      const { data, token } = await userService.login(email, password);
       localStorage.setItem("user", JSON.stringify(data));
+      localStorage.setItem("access_token", JSON.stringify(token));
+
       setUser(data);
 
       navigate("/dashboard");

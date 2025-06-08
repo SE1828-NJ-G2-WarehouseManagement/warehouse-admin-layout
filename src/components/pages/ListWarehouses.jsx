@@ -1,10 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
-  Space,
   Table,
   Tag,
-  Modal,
-  Descriptions,
   Popconfirm,
   message,
   Tooltip,
@@ -12,139 +9,35 @@ import {
   Button,
   Dropdown,
 } from "antd";
-import { DeleteOutlined, EditOutlined, EyeOutlined, MoreOutlined } from "@ant-design/icons";
-import dayjs from "dayjs";
+import {
+  DeleteOutlined,
+  EditOutlined,
+  EyeOutlined,
+  MoreOutlined,
+  PlusCircleOutlined,
+} from "@ant-design/icons";
+import axiosInstance from "../../config/axios";
+import FormRequestWarehouse from "../common/FormRequestWarehouse";
 
 const { Column, ColumnGroup } = Table;
 
 const WarehouseTable = () => {
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [warehouses, setWarehouses] = useState([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const data = [
-    {
-      _id: "1",
-      name: "Central Warehouse",
-      address: "123 Main St, Cityville",
-      totalCapacity: 10000,
-      currentCapacity: 4500,
-      status: "active",
-      manageBy: "LongTDD",
-      staffs: ["staff1", "staff2"],
-      createdAt: "2025-05-29T10:00:00.000+00:00",
-      updatedAt: "2025-05-29T10:00:00.000+00:00",
-    },
-    {
-      _id: "2",
-      name: "East Warehouse",
-      address: "456 East Rd, Townsville",
-      totalCapacity: 8000,
-      currentCapacity: 7900,
-      status: "active",
-      manageBy: "LongTDD",
-      staffs: [],
-      createdAt: "2025-05-28T09:30:00.000+00:00",
-      updatedAt: "2025-05-29T08:15:00.000+00:00",
-    },
-    {
-      _id: "3",
-      name: "West Depot",
-      address: "789 West Blvd, Oceanview",
-      totalCapacity: 6000,
-      currentCapacity: 5800,
-      status: "active",
-      manageBy: "AnnaN",
-      staffs: ["staff3"],
-      createdAt: "2025-05-25T12:45:00.000+00:00",
-      updatedAt: "2025-05-27T14:10:00.000+00:00",
-    },
-    {
-      _id: "4",
-      name: "South Storage",
-      address: "321 South St, Rivertown",
-      totalCapacity: 9000,
-      currentCapacity: 1000,
-      status: "active",
-      manageBy: "BruceL",
-      staffs: ["staff4", "staff5", "staff6"],
-      createdAt: "2025-05-20T08:00:00.000+00:00",
-      updatedAt: "2025-05-28T10:00:00.000+00:00",
-    },
-    {
-      _id: "5",
-      name: "North Facility",
-      address: "654 North Ave, Hilltop",
-      totalCapacity: 7000,
-      currentCapacity: 7000,
-      status: "active",
-      manageBy: "KateM",
-      staffs: [],
-      createdAt: "2025-05-18T10:10:00.000+00:00",
-      updatedAt: "2025-05-25T11:11:00.000+00:00",
-    },
-    {
-      _id: "6",
-      name: "Suburban Warehouse",
-      address: "85 Suburbia Ln, Lakeside",
-      totalCapacity: 5000,
-      currentCapacity: 3200,
-      status: "active",
-      manageBy: "LongTDD",
-      staffs: ["staff7"],
-      createdAt: "2025-05-15T09:00:00.000+00:00",
-      updatedAt: "2025-05-26T09:30:00.000+00:00",
-    },
-    {
-      _id: "7",
-      name: "Downtown Storage",
-      address: "12 Downtown Dr, Metropolis",
-      totalCapacity: 8500,
-      currentCapacity: 2000,
-      status: "inactive",
-      manageBy: "JohnW",
-      staffs: ["staff8", "staff9"],
-      createdAt: "2025-05-10T15:00:00.000+00:00",
-      updatedAt: "2025-05-20T17:00:00.000+00:00",
-    },
-    {
-      _id: "8",
-      name: "Mountain Depot",
-      address: "99 Hill Rd, Highland",
-      totalCapacity: 7500,
-      currentCapacity: 7400,
-      status: "active",
-      manageBy: "LongTDD",
-      staffs: [],
-      createdAt: "2025-05-08T07:00:00.000+00:00",
-      updatedAt: "2025-05-15T08:00:00.000+00:00",
-    },
-    {
-      _id: "9",
-      name: "Coastal Storage",
-      address: "20 Bay St, Seaside",
-      totalCapacity: 9500,
-      currentCapacity: 6000,
-      status: "active",
-      manageBy: "ChrisB",
-      staffs: ["staff10"],
-      createdAt: "2025-05-05T10:00:00.000+00:00",
-      updatedAt: "2025-05-10T10:10:00.000+00:00",
-    },
-    {
-      _id: "10",
-      name: "Remote Facility",
-      address: "999 Remote Way, Outland",
-      totalCapacity: 4000,
-      currentCapacity: 3900,
-      status: "active",
-      manageBy: "LongTDD",
-      staffs: [],
-      createdAt: "2025-05-01T09:00:00.000+00:00",
-      updatedAt: "2025-05-07T09:45:00.000+00:00",
-    },
-  ];
+  const fetchWarehouse = async () => {
+    const response = await axiosInstance.get("/warehouses", {
+      requiresAuth: true,
+    });
+    setWarehouses(response.data.data);
+  };
 
-  const warehouseData = data.map((item) => ({
+  useEffect(() => {
+    fetchWarehouse();
+  }, []);
+
+  const warehouseData = warehouses.map((item) => ({
     key: item._id,
     ...item,
   }));
@@ -183,7 +76,8 @@ const WarehouseTable = () => {
   };
 
   const handleEdit = (record) => {
-    message.info(`Editing`);
+    setSelectedWarehouse(record);
+    setIsModalOpen(true);
   };
 
   const handleDelete = (record) => {
@@ -192,7 +86,21 @@ const WarehouseTable = () => {
 
   return (
     <>
-      <h1 className="text-xl font-medium mb-2 capitalize">List warehouses</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-xl font-medium capitalize">List warehouses</h1>
+
+        <Button type="primary" onClick={() => handleEdit(null)}>
+          <Tooltip title="Add New Warehouse">
+            <PlusCircleOutlined />
+          </Tooltip>
+        </Button>
+
+        <FormRequestWarehouse
+          isModalOpen={isModalOpen}
+          setIsModalOpen={setIsModalOpen}
+          record={selectedWarehouse}
+        />
+      </div>
       <Table
         dataSource={warehouseData}
         scroll={{ x: 1300 }}
@@ -283,6 +191,12 @@ const WarehouseTable = () => {
           dataIndex="manageBy"
           width={100}
           className="font-medium"
+          render={(_, record) => {
+            const { manageBy } = record;
+            if (manageBy && manageBy.email) {
+              return <span>{record.manageBy.email}</span>;
+            }
+          }}
         />
 
         <Column
@@ -300,41 +214,6 @@ const WarehouseTable = () => {
           )}
         />
       </Table>
-
-      <Modal
-        title="Warehouse Details"
-        open={modalVisible}
-        onCancel={() => setModalVisible(false)}
-        footer={null}
-      >
-        {selectedWarehouse && (
-          <Descriptions bordered size="small" column={1}>
-            <Descriptions.Item label="Name">
-              {selectedWarehouse.name}
-            </Descriptions.Item>
-            <Descriptions.Item label="Address">
-              {selectedWarehouse.address}
-            </Descriptions.Item>
-            <Descriptions.Item label="Capacity">
-              {selectedWarehouse.currentCapacity} /{" "}
-              {selectedWarehouse.totalCapacity}
-            </Descriptions.Item>
-            <Descriptions.Item label="Status">
-              <Tag
-                color={selectedWarehouse.status === "active" ? "green" : "red"}
-              >
-                {selectedWarehouse.status.toUpperCase()}
-              </Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Staffs">
-              {selectedWarehouse.staffs.length} person(s)
-            </Descriptions.Item>
-            <Descriptions.Item label="Created At">
-              {dayjs(selectedWarehouse.createdAt).format("DD/MM/YYYY")}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </Modal>
     </>
   );
 };
