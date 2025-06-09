@@ -18,6 +18,19 @@ class UserService {
 
     return data;
   };
+
+  getUsers = async () => {
+    const response = await axiosInstance.get(`${this.url}/`, {
+      requiresAuth: true
+    });
+    const data = response.data;
+
+    if (data && !data.isSuccess) {
+      throw new Error("Get list failed");
+    }
+
+    return data;
+  }
 }
 
 export default UserService;

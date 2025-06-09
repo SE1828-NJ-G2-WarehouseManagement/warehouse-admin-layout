@@ -172,7 +172,7 @@ const WarehouseTable = () => {
           key="status"
           width={100}
           render={(status) => (
-            <Tag color={status === "active" ? "green" : "red"}>
+            <Tag color={status === "ACTIVE" ? "green" : "red"}>
               {status.toUpperCase()}
             </Tag>
           )}
