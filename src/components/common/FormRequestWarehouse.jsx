@@ -5,23 +5,28 @@ import {
   Form,
   Input,
   InputNumber,
+  message,
   Modal,
   Row,
   Select,
   Switch,
 } from "antd";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StepperLayout from "./StepperLayout";
 import { FormOutlined, LikeOutlined, UserOutlined } from "@ant-design/icons";
 import UserService from "../../service/userService";
 import FlowView from "./FlowView";
 import { ReactFlowProvider } from "reactflow";
+import FormCreateUser from "./FormCreateUser";
 
 const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
   const [form] = Form.useForm();
+  const formRef = useRef();
+
   const [current, setCurrent] = useState(0);
   const [textModal, setTextModal] = useState("Next");
   const [users, setUsers] = useState([]);
+  const [isModalCreateUserOpen, setModalCreateUser] = useState(false);
 
   //user information
   const [selectedUser, setSelectedUser] = useState(null);
@@ -36,7 +41,12 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
   const fetchUser = async () => {
     try {
       const data = await userService.getUsers();
-      setUsers(data.data.filter((user) => user.role === "WAREHOUSE_MANAGER"));
+      setUsers(
+        data.data.filter(
+          (user) =>
+            user.role === "WAREHOUSE_MANAGER" && user.assignedWarehouse === null
+        )
+      );
     } catch (error) {
       console.log(error);
     }
@@ -108,6 +118,19 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
 
   const onFinishFailed = (errorInfo) => {
     console.log("Failed:", errorInfo);
+    message.info("Must be input valid value");
+  };
+
+  const handleOkCreateUser = async () => {
+    if (formRef.current) {
+      const user = await formRef.current.submitForm();
+      if (user) {
+        setSelectedUser(user);
+        setModalCreateUser(false);
+        setCurrent(current + 1);
+        setButtonModalStatus(false);
+      }
+    }
   };
 
   const steps = [
@@ -168,14 +191,19 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
             </Col>
 
             <Col span={12}>
-              <Form.Item
-                label="Status"
-                name="status"
-                valuePropName="checked"
-                className="text-left"
-              >
-                <Switch checkedChildren="ACTIVE" unCheckedChildren="INACTIVE" />
-              </Form.Item>
+              {!record && (
+                <Form.Item
+                  label="Status"
+                  name="status"
+                  valuePropName="checked"
+                  className="text-left"
+                >
+                  <Switch
+                    checkedChildren="ACTIVE"
+                    unCheckedChildren="INACTIVE"
+                  />
+                </Form.Item>
+              )}
             </Col>
           </Row>
         </Form>
@@ -211,9 +239,24 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
                 }))}
               />
 
-              <span className="block text-blue-500 text-sm hover:text-blue-600 active:text-blue-700 cursor-pointer">
+              <span
+                onClick={() => setModalCreateUser(true)}
+                className="block text-blue-500 text-sm hover:text-blue-600 active:text-blue-700 cursor-pointer"
+              >
                 Want to create new manager ?
               </span>
+              <Modal
+                title={"Create User"}
+                open={isModalCreateUserOpen}
+                onCancel={() => setModalCreateUser(false)}
+               
+                onOk={handleOkCreateUser}
+                
+                zIndex={999}
+                width={700}
+              >
+                <FormCreateUser isAssignedManager={true} setSelectedUser={setSelectedUser} ref={formRef} />
+              </Modal>
             </div>
           )}
 
@@ -311,6 +354,7 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
       onOk={submitForm}
       okText={textModal}
       onCancel={onCancel}
+      zIndex={10}
       okButtonProps={{ disabled: buttonModalStatus }}
       width={700}
     >

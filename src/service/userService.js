@@ -19,6 +19,21 @@ class UserService {
     return data;
   };
 
+  register = async (email, password, role) => {
+    const response = await axiosInstance.post(`${this.url}/register`, {
+      email,
+      password,
+      role
+    });
+    const data = response.data;
+
+    if (data && !data.isSuccess) {
+      throw new Error("Register failed");
+    }
+
+    return data;
+  };
+
   getUsers = async () => {
     const response = await axiosInstance.get(`${this.url}/`, {
       requiresAuth: true

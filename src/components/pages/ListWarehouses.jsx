@@ -133,7 +133,7 @@ const WarehouseTable = () => {
               const { currentCapacity, totalCapacity } = record;
               const percent =
                 totalCapacity > 0
-                  ? Math.round((currentCapacity / totalCapacity) * 100)
+                  ? Math.floor((currentCapacity / totalCapacity) * 100)
                   : 0;
 
               let label = "Available";
@@ -142,7 +142,7 @@ const WarehouseTable = () => {
               if (percent === 100) {
                 label = "Full";
                 color = "red";
-              } else if (percent >= 90) {
+              } else if (percent >= 90 && percent < 100) {
                 label = "Nearly full";
                 color = "orange";
               }
@@ -152,6 +152,7 @@ const WarehouseTable = () => {
                   <Progress
                     percent={percent}
                     size="small"
+                    showInfo={false}
                     strokeColor={
                       percent === 100
                         ? "red"

@@ -89,11 +89,10 @@ const FlowView = ({ selectedUser, warehouse }) => {
             title={
               <div>
                 <div><strong>Manager Information</strong></div>
-                <div>Email: {selectedUser?.email || "manager@company.com"}</div>
-                <div>Phone: {selectedUser?.phone || "+84 123 456 789"}</div>
+                <div>Email: {selectedUser?.email || "N/A"}</div>
+                <div>Phone: {selectedUser?.phone || "N/A"}</div>
                 <div>Role: {selectedUser?.role || "Warehouse Manager"}</div>
                 <div>Status: {selectedUser?.status || "Active"}</div>
-                <div>Department: {selectedUser?.department || "Operations"}</div>
               </div>
             }
             placement="top"
