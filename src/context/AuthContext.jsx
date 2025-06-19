@@ -2,6 +2,7 @@ import { Children, createContext, useEffect, useState } from "react";
 import { ROLE } from "../constant/key";
 import { Navigate, useNavigate } from "react-router-dom";
 import UserService from "../service/userService";
+import { message } from "antd";
 
 const AuthContext = createContext();
 
@@ -31,6 +32,13 @@ const AuthProvider = ({ children }) => {
 
     try {
       const { data, token } = await userService.login(email, password);
+
+      const {role} = data;
+
+      if (role !== ROLE.ADMIN_WAREHOUSE) {
+        message.error("You don't have permission in here");
+        return;
+      }
       localStorage.setItem("user", JSON.stringify(data));
       localStorage.setItem("access_token", JSON.stringify(token));
 

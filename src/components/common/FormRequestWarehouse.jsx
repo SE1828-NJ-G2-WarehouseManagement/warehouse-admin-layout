@@ -10,16 +10,31 @@ import {
   Row,
   Select,
   Switch,
+  Tag,
+  Checkbox,
 } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import StepperLayout from "./StepperLayout";
-import { FormOutlined, LikeOutlined, UserOutlined } from "@ant-design/icons";
+import {
+  FormOutlined,
+  LikeOutlined,
+  UserOutlined,
+  TeamOutlined,
+} from "@ant-design/icons";
 import UserService from "../../service/userService";
 import FlowView from "./FlowView";
 import { ReactFlowProvider } from "reactflow";
 import FormCreateUser from "./FormCreateUser";
+import { ROLE } from "../../constant/key";
+import WarehouseService from "../../service/warehouseService";
 
-const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
+const FormRequestWarehouse = ({
+  isModalOpen,
+  setIsModalOpen,
+  record,
+  setIsModalCancel,
+  listWarehouseName
+}) => {
   const [form] = Form.useForm();
   const formRef = useRef();
 
@@ -36,51 +51,76 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
   //modal button status
   const [buttonModalStatus, setButtonModalStatus] = useState(false);
 
+  const [selectedStaffs, setSelectedStaffs] = useState([]);
+  const [availableStaffs, setAvailableStaffs] = useState([]);
+  const [isModalCreateStaffOpen, setModalCreateStaffOpen] = useState(false);
+  const [checkedStaffIds, setCheckedStaffIds] = useState([]);
+
   const userService = new UserService();
+  const warehouseService = new WarehouseService();
 
   const fetchUser = async () => {
     try {
       const data = await userService.getUsers();
-      setUsers(
-        data.data.filter(
-          (user) =>
-            user.role === "WAREHOUSE_MANAGER" && user.assignedWarehouse === null
-        )
+      const filterManger = data.data.filter(
+        (user) =>
+          user.role === ROLE.WAREHOUSE_MANAGER &&
+          user.assignedWarehouse === null
       );
+      setUsers(filterManger);
     } catch (error) {
       console.log(error);
     }
   };
 
+  const fetchStaffs = async () => {
+    const { data } = await userService.getUsers();
+    const staffs = data.filter(
+      (user) =>
+        (user.role === ROLE.WAREHOUSE_STAFF && user.assignedWarehouse === null) ||
+        (record?.staffs?.some(staff => staff._id === user._id))
+    );
+    setAvailableStaffs(staffs);
+  };
+
   useEffect(() => {
     if (isModalOpen) {
+      const fetchData = async () => {
+        await fetchUser();
+        fetchStaffs();
+      };
+      fetchData();
       setSelectedUser(null);
       setShowUserInfo(false);
       setButtonModalStatus(false);
+      setSelectedStaffs([]);
+      setCheckedStaffIds([]);
       if (record) {
         form.setFieldsValue({
           name: record.name || "",
           address: record.address || "",
           totalCapacity: record.totalCapacity || 0,
-          status: record.status === "ACTIVE" ? true : false,
         });
         setWarehouseData(form.getFieldsValue());
         if (record?.manageBy && typeof record.manageBy === "object") {
           setSelectedUser(record.manageBy);
           setShowUserInfo(true);
         }
+        if (record?.staffs) {
+          setSelectedStaffs(record.staffs);
+          setCheckedStaffIds(record.staffs.map((staff) => staff._id));
+        }
       } else {
         form.setFieldsValue({
           name: "",
           address: "",
           totalCapacity: 0,
-          status: true,
         });
       }
     }
   }, [isModalOpen, record, form]);
 
-  const submitForm = () => {
+  const submitForm = async () => {
     switch (current) {
       //step 1 when input form warehouse
       case 0:
@@ -90,18 +130,64 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
       //step 2 choose user assigned the warehouse
       case 1:
         setCurrent(current + 1);
+        setButtonModalStatus(record ? false : true);
+        setTextModal("Done");
+        break;
+
+      //step 3 choose staffs assigned the warehouse
+      case 2:
+        setCurrent(current + 1);
         setTextModal("Done");
         break;
 
       //model view after chose
-      case 2:
-        onCancel();
+      case 3:
+        await createWarehouse();
         break;
+    }
+  };
+
+  // create warehouse
+  const createWarehouse = async () => {
+    try {
+      const manageBy = selectedUser._id;
+      const staffs = selectedStaffs.map((staff) => staff._id);
+
+      const data = {
+        ...warehouseData,
+        manageBy,
+        staffs,
+      };
+
+      if (record) {
+        const warehouseId = record._id;
+        const response = await warehouseService.updateWarehouse(
+          warehouseId,
+          data
+        );
+        message.success("Update warehouse successfully");
+        console.log(response.data);
+      } else {
+        const response = await warehouseService.createWarehouse(data);
+        message.success("Create warehouse successfully");
+        console.log(response);
+      }
+
+      onCancel();
+    } catch (error) {
+      console.log(error);
+      message.error(error.response?.data?.message || "An error occurred");
     }
   };
 
   //handle the form
   const onFinish = async (values) => {
+    //validate name warehouse
+    if (!record && listWarehouseName.includes(values.name)) {
+      message.error("Warehouse name already exists");
+      return;
+    }
+
     await fetchUser();
     setWarehouseData(values);
     setCurrent(current + 1);
@@ -113,6 +199,7 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
     setTextModal("Next");
     setCurrent(0);
     setIsModalOpen(false);
+    setIsModalCancel(true);
     form.resetFields();
   };
 
@@ -126,10 +213,38 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
       const user = await formRef.current.submitForm();
       if (user) {
         setSelectedUser(user);
-        setModalCreateUser(false);
         setCurrent(current + 1);
         setButtonModalStatus(false);
+        await fetchUser();
+        setModalCreateUser(false);
       }
+    }
+  };
+
+  const handleOkCreateStaff = async () => {
+    if (formRef.current) {
+      const staff = await formRef.current.submitForm();
+      if (staff) {
+        setSelectedStaffs([...selectedStaffs, staff]);
+        setCheckedStaffIds([...checkedStaffIds, staff._id]);
+        await fetchStaffs();
+        setModalCreateStaffOpen(false);
+      }
+    }
+  };
+
+  const handleStaffCheckboxChange = (staffId, checked) => {
+    if (checked) {
+      const staff = availableStaffs.find((s) => s._id === staffId);
+      if (staff && !selectedStaffs.find((s) => s._id === staffId)) {
+        setSelectedStaffs([...selectedStaffs, staff]);
+        setCheckedStaffIds([...checkedStaffIds, staffId]);
+        setButtonModalStatus(false);
+      }
+    } else {
+      setSelectedStaffs(selectedStaffs.filter((s) => s._id !== staffId));
+      setCheckedStaffIds(checkedStaffIds.filter((id) => id !== staffId));
+      setButtonModalStatus(selectedStaffs.length > 1);
     }
   };
 
@@ -142,13 +257,7 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
           form={form}
           name="basic"
           layout="vertical"
-          onFinish={(values) => {
-            const formData = {
-              ...values,
-              status: values.status ? "ACTIVE" : "INACTIVE",
-            };
-            onFinish(formData);
-          }}
+          onFinish={(values) => onFinish(values)}
           onFinishFailed={onFinishFailed}
           autoComplete="off"
         >
@@ -166,51 +275,31 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
             <Input />
           </Form.Item>
 
-          <Row gutter={16}>
-            <Col span={12}>
-              <Form.Item
-                label="Total Capacity"
-                name="totalCapacity"
-                rules={[
-                  { required: true, message: "Please input total capacity!" },
-                  {
-                    validator: (_, value) =>
-                      Number.isInteger(value) && value > 0
-                        ? Promise.resolve()
-                        : Promise.reject(
-                            "Must be a non-negative number and bigger than 0"
-                          ),
-                  },
-                ]}
-              >
-                <InputNumber
-                  style={{ width: "100%" }}
-                  parser={(value) => value.replace(/[^\d]/g, "")}
-                />
-              </Form.Item>
-            </Col>
-
-            <Col span={12}>
-              {!record && (
-                <Form.Item
-                  label="Status"
-                  name="status"
-                  valuePropName="checked"
-                  className="text-left"
-                >
-                  <Switch
-                    checkedChildren="ACTIVE"
-                    unCheckedChildren="INACTIVE"
-                  />
-                </Form.Item>
-              )}
-            </Col>
-          </Row>
+          <Form.Item
+            label="Total Capacity"
+            name="totalCapacity"
+            rules={[
+              { required: true, message: "Please input total capacity!" },
+              {
+                validator: (_, value) =>
+                  Number.isInteger(value) && value > 0
+                    ? Promise.resolve()
+                    : Promise.reject(
+                        "Must be a non-negative number and bigger than 0"
+                      ),
+              },
+            ]}
+          >
+            <InputNumber
+              style={{ width: "100%" }}
+              parser={(value) => value.replace(/[^\d]/g, "")}
+            />
+          </Form.Item>
         </Form>
       ),
     },
     {
-      title: "Assigned",
+      title: "Assigned Manager",
       icon: <UserOutlined className="text-sm" />,
       content: (
         <div>
@@ -228,15 +317,26 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
                     .includes(input.toLowerCase())
                 }
                 onChange={(value) => {
-                  const user = users.find((u) => u._id === value);
+                  let listChecked = users;
+
+                  if (record) {
+                    listChecked = [...users, record?.manageBy];
+                  }
+                  const user = listChecked.find((u) => u._id === value);
                   setSelectedUser(user);
                   setShowUserInfo(true);
                   setButtonModalStatus(false);
                 }}
-                options={users.map((user) => ({
-                  value: user._id,
-                  label: user.email,
-                }))}
+                options={(() => {
+                  let listOptions = users;
+                  if (record) {
+                    listOptions = [...users, record?.manageBy];
+                  }
+                  return listOptions.map((user) => ({
+                    value: user._id,
+                    label: user.email,
+                  }));
+                })()}
               />
 
               <span
@@ -249,13 +349,14 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
                 title={"Create User"}
                 open={isModalCreateUserOpen}
                 onCancel={() => setModalCreateUser(false)}
-               
                 onOk={handleOkCreateUser}
-                
                 zIndex={999}
                 width={700}
               >
-                <FormCreateUser isAssignedManager={true} setSelectedUser={setSelectedUser} ref={formRef} />
+                <FormCreateUser
+                  roleAssigned={ROLE.WAREHOUSE_MANAGER}
+                  ref={formRef}
+                />
               </Modal>
             </div>
           )}
@@ -274,15 +375,26 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
                     .includes(input.toLowerCase())
                 }
                 onChange={(value) => {
-                  const user = users.find((u) => u._id === value);
+                  let listChecked = users;
+
+                  if (record) {
+                    listChecked = [...users, record?.manageBy];
+                  }
+                  const user = listChecked.find((u) => u._id === value);
                   setSelectedUser(user);
                   setShowUserInfo(true);
                   setButtonModalStatus(false);
                 }}
-                options={users.map((user) => ({
-                  value: user._id,
-                  label: user.email,
-                }))}
+                options={(() => {
+                  let listOptions = users;
+                  if (record) {
+                    listOptions = [...users, record?.manageBy];
+                  }
+                  return listOptions.map((user) => ({
+                    value: user._id,
+                    label: user.email,
+                  }));
+                })()}
               />
 
               {/* User Info bên phải */}
@@ -337,11 +449,99 @@ const FormRequestWarehouse = ({ isModalOpen, setIsModalOpen, record }) => {
       ),
     },
     {
+      title: "Assigned Staffs",
+      icon: <TeamOutlined className="text-sm" />,
+      content: (
+        <div>
+          <div className="p-3 rounded-xl border border-blue-100 max-h-100">
+            <div className="grid grid-cols-1 gap-y-3 max-h-60 overflow-y-auto pr-2">
+              {availableStaffs.map((staff) => (
+                <div
+                  key={staff._id}
+                  className={`flex items-center gap-2 p-4 rounded border transition-all duration-200 hover:shadow-sm cursor-pointer h-17 ${
+                    checkedStaffIds.includes(staff._id)
+                      ? "bg-blue-50 border-blue-200 shadow-sm"
+                      : "bg-white border-gray-200 hover:border-blue-300"
+                  }`}
+                  onClick={() =>
+                    handleStaffCheckboxChange(
+                      staff._id,
+                      !checkedStaffIds.includes(staff._id)
+                    )
+                  }
+                >
+                  <Avatar
+                    src={staff.avatar}
+                    size={35}
+                    icon={!staff.avatar ? <UserOutlined /> : null}
+                    className={!staff.avatar ? "bg-blue-500" : ""}
+                  />
+
+                  <div className="flex-1 min-w-0">
+                    <div className="font-medium text-xs text-gray-900 truncate">
+                      {staff.email}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {staff.phone || "No phone"}
+                    </div>
+                  </div>
+
+                  {checkedStaffIds.includes(staff._id) && (
+                    <Tag color="blue" className="text-xs px-1 py-0">
+                      ✓
+                    </Tag>
+                  )}
+                </div>
+              ))}
+
+              {availableStaffs.length === 0 && (
+                <div className="col-span-full text-center py-6">
+                  <div className="text-gray-400 mb-2">
+                    <TeamOutlined className="text-3xl" />
+                  </div>
+                  <div className="text-gray-500 font-medium text-sm">
+                    No available staffs
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    Create new staff members to get started
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-5">
+              <span
+                onClick={() => setModalCreateStaffOpen(true)}
+                className="block text-blue-500 text-sm hover:text-blue-600 active:text-blue-700 cursor-pointer"
+              >
+                Want to create new staff ?
+              </span>
+            </div>
+          </div>
+
+          <Modal
+            title="Create Staff"
+            open={isModalCreateStaffOpen}
+            onCancel={() => setModalCreateStaffOpen(false)}
+            onOk={handleOkCreateStaff}
+            zIndex={999}
+            width={700}
+          >
+            <FormCreateUser roleAssigned={ROLE.WAREHOUSE_STAFF} ref={formRef} />
+          </Modal>
+        </div>
+      ),
+    },
+    {
       title: "Viewing",
       icon: <LikeOutlined className="text-sm" />,
       content: (
         <ReactFlowProvider>
-          <FlowView warehouse={warehouseData} selectedUser={selectedUser} />
+          <FlowView
+            warehouse={warehouseData}
+            selectedUser={selectedUser}
+            selectedStaffs={selectedStaffs}
+          />
         </ReactFlowProvider>
       ),
     },

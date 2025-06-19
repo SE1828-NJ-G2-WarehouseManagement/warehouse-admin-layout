@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Table,
   Tag,
@@ -23,19 +23,31 @@ const { Column, ColumnGroup } = Table;
 
 const WarehouseTable = () => {
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+  const [listWarehouseName, setListWarehouseName] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalCancel, setIsModalCancel] = useState(false);
 
   const fetchWarehouse = async () => {
     const response = await axiosInstance.get("/warehouses", {
       requiresAuth: true,
     });
     setWarehouses(response.data.data);
+    setListWarehouseName(response.data.data.map((item) => item.name));
   };
 
   useEffect(() => {
     fetchWarehouse();
   }, []);
+
+  useEffect(() => {
+    if (isModalCancel) {
+      setIsModalCancel(false);
+      fetchWarehouse();
+      console.log("fetchWarehouse");
+      
+    }
+  }, [isModalCancel]);
 
   const warehouseData = warehouses.map((item) => ({
     key: item._id,
@@ -99,6 +111,8 @@ const WarehouseTable = () => {
           isModalOpen={isModalOpen}
           setIsModalOpen={setIsModalOpen}
           record={selectedWarehouse}
+          setIsModalCancel={setIsModalCancel}
+          listWarehouseName={listWarehouseName}
         />
       </div>
       <Table

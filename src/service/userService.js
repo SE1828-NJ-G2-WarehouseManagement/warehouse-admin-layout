@@ -45,6 +45,26 @@ class UserService {
     }
 
     return data;
+  };
+
+  getAvailableStaff = async () => {
+    try {
+      const response = await axiosInstance.get(`${this.url}/get-staff-available`, {
+        requiresAuth: true
+      });
+
+      const data = response.data;
+
+      if (data && !data.isSuccess) {
+        throw new Error("Get list staff failed");
+      }
+
+      return data;
+      
+    } catch (error) {
+      console.log(error);
+      return null;
+    }
   }
 }
 

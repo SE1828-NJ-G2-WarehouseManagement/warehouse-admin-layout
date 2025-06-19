@@ -1,28 +1,26 @@
 import { Form, Input, message, Select } from "antd";
 import React, { forwardRef, useImperativeHandle } from "react";
 import UserService from "../../service/userService";
+import { ROLE } from "../../constant/key";
 
 const { Option } = Select;
 
 const FormCreateUser = forwardRef((props, ref) => {
   const [formCreateUser] = Form.useForm();
-  const { isAssignedManager } = props;
+  const { roleAssigned } = props;
   const userService = new UserService();
 
   const onFinishCreateUser = async (values) => {
     try {
       let result = values;
-      if (isAssignedManager) {
-        result = { ...values, role: "WAREHOUSE_MANAGER" };
-      }
 
+      console.log(result);
       const data = await userService.register(
         result?.email,
         result?.password,
-        result?.role
+        roleAssigned || result?.role
       );
 
-      console.log(data.data);
       const user = data?.data;
 
       return user;
@@ -79,7 +77,7 @@ const FormCreateUser = forwardRef((props, ref) => {
         <Input.Password />
       </Form.Item>
 
-      {!isAssignedManager && (
+      {!roleAssigned && (
         <Form.Item
           label="Role"
           name="role"
