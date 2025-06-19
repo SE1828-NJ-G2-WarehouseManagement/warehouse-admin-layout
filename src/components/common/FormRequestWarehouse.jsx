@@ -178,7 +178,7 @@ const FormRequestWarehouse = ({
       //step 3 choose staffs assigned the warehouse
       case 2:
         setCurrent(current + 1);
-        setTextModal("Create Warehouse");
+        setTextModal(record ? "Update Warehouse" : "Create Warehouse");
         break;
 
       //model view after chose
@@ -304,7 +304,12 @@ const FormRequestWarehouse = ({
   const handleOkCreateStaff = async () => {
     if (formRef.current) {
       const staff = await formRef.current.submitForm();
+      console.log(staff);
+      
       if (staff) {
+        console.log('fetched staffs');
+        console.log(staff);
+        
         setSelectedStaffs([...selectedStaffs, staff]);
         setCheckedStaffIds([...checkedStaffIds, staff._id]);
         await fetchStaffs();
