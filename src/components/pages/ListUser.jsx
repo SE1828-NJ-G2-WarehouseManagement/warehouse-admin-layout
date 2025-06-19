@@ -40,7 +40,7 @@ const UserTable = () => {
       setUsers(response.data);
     }
     fetchUsers();
-  }, []);
+  }, [isModalCreateUserOpen]);
 
   const getMenuItems = (record) => [
     {

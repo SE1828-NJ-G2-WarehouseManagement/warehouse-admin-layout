@@ -72,7 +72,9 @@ const FormCreateUser = forwardRef((props, ref) => {
       }
       return null;
     } finally {
-      setModalCreateUser(false);
+      if (typeof setModalCreateUser === 'function') {
+        setModalCreateUser(false);
+      }
     }
   };
 
@@ -109,12 +111,9 @@ const FormCreateUser = forwardRef((props, ref) => {
 
   useImperativeHandle(ref, () => ({
     submitForm: async () => {
-      try {
-        const values = await formCreateUser.validateFields();
-        return await onFinishCreateUser(values);
-      } catch {
-        return false;
-      }
+      const values = await formCreateUser.validateFields();
+      const data = await onFinishCreateUser(values);
+      return data
     },
   }));
 
