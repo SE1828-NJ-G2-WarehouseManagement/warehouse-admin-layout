@@ -197,7 +197,31 @@ const WarehouseTable = () => {
           title="Staffs"
           key="staffs"
           width={100}
-          render={(_, record) => <span>{record.staffs.length} person(s)</span>}
+          render={(_, record) => (
+            <Tooltip
+              title={
+                record.staffs.length > 0 ? (
+                  <div className="text-xs text-black max-h-40 overflow-y-auto">
+                    {record.staffs.map((staff, index) => (
+                      <div key={staff._id || index} className="mb-1">
+                        <div><strong>Name:</strong> {staff.firstName} {staff.lastName}</div>
+                        <div><strong>Email:</strong> {staff.email}</div>
+                        <div><strong>Phone:</strong> {staff.phone || 'N/A'}</div>
+                        <div><strong>Username:</strong> {staff.username}</div>
+                        {index < record.staffs.length - 1 && <hr className="my-1" />}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-black">None</span>
+                )
+              }
+              placement="left"
+              color="white"
+            >
+              <span className="cursor-help">{record.staffs.length} person(s)</span>
+            </Tooltip>
+          )}
         />
 
         <Column
