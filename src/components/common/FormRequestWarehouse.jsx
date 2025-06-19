@@ -60,7 +60,6 @@ const FormRequestWarehouse = ({
   const userService = new UserService();
   const warehouseService = new WarehouseService();
 
-
   /**
    * fetch user
    * get all users
@@ -98,7 +97,6 @@ const FormRequestWarehouse = ({
     setAvailableStaffs(staffs);
   };
 
-
   /**
    * useEffect to fetch user and staffs
    * set selected user to null
@@ -122,7 +120,7 @@ const FormRequestWarehouse = ({
 
       //set button modal status to false
       setButtonModalStatus(false);
-      
+
       //set selected staffs to empty array
       setSelectedStaffs([]);
       setCheckedStaffIds([]);
@@ -153,7 +151,6 @@ const FormRequestWarehouse = ({
       }
     }
   }, [isModalOpen, record, form]);
-
 
   /**
    * submit form
@@ -242,13 +239,20 @@ const FormRequestWarehouse = ({
    * set current to 1
    * set button modal status to false
    * set text modal to "Confirm Assigned"
-   * 
+   *
    * @param {*} values form values
    * @returns void
    */
   const onFinish = async (values) => {
+    //if record delete the current edit warehouse name
+    if (record) {
+      listWarehouseName = listWarehouseName.filter(
+        (name) => name.trim() !== record.name.trim()
+      );
+    }
+
     //validate name warehouse
-    if (!record && listWarehouseName.includes(values.name)) {
+    if (listWarehouseName.includes(values.name.trim())) {
       message.error("Warehouse name already exists");
       return;
     }
@@ -263,7 +267,7 @@ const FormRequestWarehouse = ({
   /**
    * handle cancel modal
    * reset form and set current to 0
-   * 
+   *
    */
   const onCancel = () => {
     setTextModal("Next");
@@ -364,18 +368,23 @@ const FormRequestWarehouse = ({
             rules={[
               { required: true, message: "Please input total capacity!" },
               {
-                validator: (_, value) =>
-                  Number.isInteger(value) && value > 0
-                    ? Promise.resolve()
-                    : Promise.reject(
-                        "Must be a non-negative number and bigger than 0"
-                      ),
+                type: "number",
+                min: 1,
+                message: "Must be a positive integer greater than 0",
               },
             ]}
           >
             <InputNumber
               style={{ width: "100%" }}
-              parser={(value) => value.replace(/[^\d]/g, "")}
+              min={1}
+              step={1}
+              precision={0}
+              parser={(value) => {
+                return value.replace(/[^\d]/g, "");
+              }}
+              formatter={(value) => {
+                return value;
+              }}
             />
           </Form.Item>
         </Form>
@@ -400,7 +409,6 @@ const FormRequestWarehouse = ({
                     .toLowerCase()
                     .includes(input.toLowerCase())
                 }
-
                 //handle change user
                 onChange={(value) => {
                   let listChecked = users;
@@ -414,7 +422,6 @@ const FormRequestWarehouse = ({
                   setShowUserInfo(true);
                   setButtonModalStatus(false);
                 }}
-
                 //set options to select
                 //if record is true, add record manageBy to listOptions
                 options={(() => {
