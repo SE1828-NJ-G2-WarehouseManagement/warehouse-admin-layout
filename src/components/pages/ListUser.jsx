@@ -103,7 +103,7 @@ const UserTable = () => {
           zIndex={999}
           width={700}
         >
-          <FormCreateUser ref={formRef} />
+          <FormCreateUser setModalCreateUser={setModalCreateUser} ref={formRef} />
         </Modal>
       </div>
       <Table

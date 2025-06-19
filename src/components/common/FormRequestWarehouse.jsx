@@ -12,6 +12,7 @@ import {
   Switch,
   Tag,
   Checkbox,
+  Button,
 } from "antd";
 import { useEffect, useImperativeHandle, useRef, useState } from "react";
 import StepperLayout from "./StepperLayout";
@@ -33,7 +34,7 @@ const FormRequestWarehouse = ({
   setIsModalOpen,
   record,
   setIsModalCancel,
-  listWarehouseName
+  listWarehouseName,
 }) => {
   const [form] = Form.useForm();
   const formRef = useRef();
@@ -59,6 +60,13 @@ const FormRequestWarehouse = ({
   const userService = new UserService();
   const warehouseService = new WarehouseService();
 
+
+  /**
+   * fetch user
+   * get all users
+   * filter manager
+   * set users
+   */
   const fetchUser = async () => {
     try {
       const data = await userService.getUsers();
@@ -73,16 +81,33 @@ const FormRequestWarehouse = ({
     }
   };
 
+  /**
+   * fetch staffs
+   * get all users
+   * filter staffs, if record is true, filter staffs that is not in record staffs
+   * set available staffs
+   */
   const fetchStaffs = async () => {
     const { data } = await userService.getUsers();
     const staffs = data.filter(
       (user) =>
-        (user.role === ROLE.WAREHOUSE_STAFF && user.assignedWarehouse === null) ||
-        (record?.staffs?.some(staff => staff._id === user._id))
+        (user.role === ROLE.WAREHOUSE_STAFF &&
+          user.assignedWarehouse === null) ||
+        record?.staffs?.some((staff) => staff._id === user._id)
     );
     setAvailableStaffs(staffs);
   };
 
+
+  /**
+   * useEffect to fetch user and staffs
+   * set selected user to null
+   * set show user info to false
+   * set button modal status to false
+   * set selected staffs to empty array
+   * set checked staff ids to empty array
+   * if record is true, set form fields value to record
+   */
   useEffect(() => {
     if (isModalOpen) {
       const fetchData = async () => {
@@ -90,11 +115,19 @@ const FormRequestWarehouse = ({
         fetchStaffs();
       };
       fetchData();
+
+      //set selected user to null and show user info to false
       setSelectedUser(null);
       setShowUserInfo(false);
+
+      //set button modal status to false
       setButtonModalStatus(false);
+      
+      //set selected staffs to empty array
       setSelectedStaffs([]);
       setCheckedStaffIds([]);
+
+      //if record is true, set form fields value to record
       if (record) {
         form.setFieldsValue({
           name: record.name || "",
@@ -111,6 +144,7 @@ const FormRequestWarehouse = ({
           setCheckedStaffIds(record.staffs.map((staff) => staff._id));
         }
       } else {
+        //set form fields value to empty
         form.setFieldsValue({
           name: "",
           address: "",
@@ -120,6 +154,16 @@ const FormRequestWarehouse = ({
     }
   }, [isModalOpen, record, form]);
 
+
+  /**
+   * submit form
+   * if current is 0, submit form
+   * if current is 1, set current to 2 (Assigned Manager)
+   * if current is 2, set current to 3 (Assigned Staffs)
+   * if current is 3, view flow and create warehouse
+   * show message success
+   * console log response
+   */
   const submitForm = async () => {
     switch (current) {
       //step 1 when input form warehouse
@@ -131,13 +175,13 @@ const FormRequestWarehouse = ({
       case 1:
         setCurrent(current + 1);
         setButtonModalStatus(record ? false : true);
-        setTextModal("Done");
+        setTextModal("Confirm Assigned Staffs");
         break;
 
       //step 3 choose staffs assigned the warehouse
       case 2:
         setCurrent(current + 1);
-        setTextModal("Done");
+        setTextModal("Create Warehouse");
         break;
 
       //model view after chose
@@ -147,12 +191,22 @@ const FormRequestWarehouse = ({
     }
   };
 
-  // create warehouse
+  /**
+   * create warehouse
+   * get manageBy and staffs
+   * merge warehouse data with manageBy and staffs
+   * if record is true, update warehouse
+   * if record is false, create warehouse
+   * show message success
+   * console log response
+   */
   const createWarehouse = async () => {
     try {
+      //get manageBy and staffs
       const manageBy = selectedUser._id;
       const staffs = selectedStaffs.map((staff) => staff._id);
 
+      //merge warehouse data with manageBy and staffs
       const data = {
         ...warehouseData,
         manageBy,
@@ -180,7 +234,18 @@ const FormRequestWarehouse = ({
     }
   };
 
-  //handle the form
+  /**
+   * handle the form
+   * validate name warehouse
+   * fetch user
+   * set warehouse data
+   * set current to 1
+   * set button modal status to false
+   * set text modal to "Confirm Assigned"
+   * 
+   * @param {*} values form values
+   * @returns void
+   */
   const onFinish = async (values) => {
     //validate name warehouse
     if (!record && listWarehouseName.includes(values.name)) {
@@ -191,10 +256,15 @@ const FormRequestWarehouse = ({
     await fetchUser();
     setWarehouseData(values);
     setCurrent(current + 1);
-    setButtonModalStatus(true);
+    setButtonModalStatus(record ? false : true);
     setTextModal("Confirm Assigned");
   };
 
+  /**
+   * handle cancel modal
+   * reset form and set current to 0
+   * 
+   */
   const onCancel = () => {
     setTextModal("Next");
     setCurrent(0);
@@ -208,6 +278,9 @@ const FormRequestWarehouse = ({
     message.info("Must be input valid value");
   };
 
+  /**
+   * handle ok create user, listen to formRef to get the user created in FormCreateUser
+   */
   const handleOkCreateUser = async () => {
     if (formRef.current) {
       const user = await formRef.current.submitForm();
@@ -221,6 +294,9 @@ const FormRequestWarehouse = ({
     }
   };
 
+  /**
+   * handle ok create staff, listen to formRef to get the staff created in FormCreateUser
+   */
   const handleOkCreateStaff = async () => {
     if (formRef.current) {
       const staff = await formRef.current.submitForm();
@@ -233,6 +309,13 @@ const FormRequestWarehouse = ({
     }
   };
 
+  /**
+   * handle staff checkbox change
+   *
+   * @param {*} staffId
+   * @param {*} checked if checked is true, add staff to selectedStaffs and checkedStaffIds
+   * @param {*} checked if checked is false, remove staff from selectedStaffs and checkedStaffIds
+   */
   const handleStaffCheckboxChange = (staffId, checked) => {
     if (checked) {
       const staff = availableStaffs.find((s) => s._id === staffId);
@@ -244,7 +327,7 @@ const FormRequestWarehouse = ({
     } else {
       setSelectedStaffs(selectedStaffs.filter((s) => s._id !== staffId));
       setCheckedStaffIds(checkedStaffIds.filter((id) => id !== staffId));
-      setButtonModalStatus(selectedStaffs.length > 1);
+      setButtonModalStatus(selectedStaffs.length === 1);
     }
   };
 
@@ -311,14 +394,18 @@ const FormRequestWarehouse = ({
                 showSearch
                 placeholder="Select a manager"
                 style={{ width: "100%" }}
+                //filter option to search user
                 filterOption={(input, option) =>
                   (option?.label ?? "")
                     .toLowerCase()
                     .includes(input.toLowerCase())
                 }
+
+                //handle change user
                 onChange={(value) => {
                   let listChecked = users;
 
+                  //if record is true, add record manageBy to listChecked
                   if (record) {
                     listChecked = [...users, record?.manageBy];
                   }
@@ -327,6 +414,9 @@ const FormRequestWarehouse = ({
                   setShowUserInfo(true);
                   setButtonModalStatus(false);
                 }}
+
+                //set options to select
+                //if record is true, add record manageBy to listOptions
                 options={(() => {
                   let listOptions = users;
                   if (record) {
@@ -551,12 +641,35 @@ const FormRequestWarehouse = ({
     <Modal
       title={record ? "Update Warehouse" : "Add New Warehouse"}
       open={isModalOpen}
-      onOk={submitForm}
-      okText={textModal}
       onCancel={onCancel}
       zIndex={10}
-      okButtonProps={{ disabled: buttonModalStatus }}
       width={700}
+      footer={[
+        <Button key="cancel" onClick={onCancel}>
+          Cancel
+        </Button>,
+        <Button
+          key="back"
+          onClick={() => {
+            setCurrent(Math.max(0, current - 1));
+            if (warehouseData) {
+              setButtonModalStatus(false);
+              setTextModal("Next");
+            }
+          }}
+          disabled={current === 0}
+        >
+          Back
+        </Button>,
+        <Button
+          key="submit"
+          type="primary"
+          onClick={submitForm}
+          disabled={buttonModalStatus}
+        >
+          {textModal}
+        </Button>,
+      ]}
     >
       <StepperLayout steps={steps} current={current} />
     </Modal>
