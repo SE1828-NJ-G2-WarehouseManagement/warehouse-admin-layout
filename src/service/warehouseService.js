@@ -31,6 +31,32 @@ class WarehouseService {
     return data;
   }
 
+  //api/v1/warehouses/:id/status
+  changeStatus = async (id, status) => {
+    try {
+      const response = await axiosInstance.post(`${this.url}/${id}/status`, {
+        status,
+      }, {
+        requiresAuth: true,
+      });
+      const data = response.data;
+  
+      if (!data) {
+        throw new Error("Change status failed");
+      }
+  
+      return data;
+    } catch (error) {
+      console.log(`error: ${error}`);
+      return {
+        status: 500,
+        data: {
+          message: error.response.data.message,
+        },
+      };
+    }
+  }
+
 }
 
 export default WarehouseService;

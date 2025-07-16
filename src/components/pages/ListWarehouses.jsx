@@ -18,6 +18,8 @@ import {
 } from "@ant-design/icons";
 import axiosInstance from "../../config/axios";
 import FormRequestWarehouse from "../common/FormRequestWarehouse";
+import UserService from "../../service/userService";
+import WarehouseService from "../../service/warehouseService";
 
 const { Column, ColumnGroup } = Table;
 
@@ -27,6 +29,7 @@ const WarehouseTable = () => {
   const [warehouses, setWarehouses] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalCancel, setIsModalCancel] = useState(false);
+  const warehouseService = new WarehouseService();
 
   const fetchWarehouse = async () => {
     const response = await axiosInstance.get("/warehouses", {
@@ -56,11 +59,6 @@ const WarehouseTable = () => {
 
   const getMenuItems = (record) => [
     {
-      key: "view",
-      icon: <EyeOutlined />,
-      label: <span onClick={() => handleView(record)}>View</span>,
-    },
-    {
       key: "edit",
       icon: <EditOutlined />,
       label: <span onClick={() => handleEdit(record)}>Edit</span>,
@@ -83,17 +81,27 @@ const WarehouseTable = () => {
     },
   ];
 
-  const handleView = (record) => {
-    message.info(`Viewing`);
-  };
-
   const handleEdit = (record) => {
     setSelectedWarehouse(record);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (record) => {
-    message.success(`Deleted`);
+  const handleDelete = async (record) => {
+    console.log(record);
+    const _id = record._id;
+    const status = record.status;
+    let newStatus = "INACTIVE";
+    if (status === "INACTIVE") {
+      newStatus = "ACTIVE";
+    }
+    const response = await warehouseService.changeStatus(_id, newStatus);
+    console.log(`response: ${response}`);
+    if (response.status === 500) {
+      message.error(response.data.message);
+      return;
+    }
+    message.success(`Change status to ${newStatus}`);
+    fetchWarehouse();
   };
 
   return (

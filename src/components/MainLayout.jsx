@@ -23,6 +23,17 @@ const MainLayout = ({ children }) => {
 
   const location = useLocation();
 
+  const siderStyle = {
+    overflow: 'auto',
+    height: '100vh',
+    position: 'sticky',
+    insetInlineStart: 0,
+    top: 0,
+    bottom: 0,
+    scrollbarWidth: 'thin',
+    scrollbarGutter: 'stable',
+  };
+
   useEffect(() => {
     const path = location.pathname;
 
@@ -31,12 +42,11 @@ const MainLayout = ({ children }) => {
     else if (path === "/warehouses") setSelectedPage(["2.1"]);
     else if (path === "/warehouses/report") setSelectedPage(["2.2"]);
     else if (path === "/users") setSelectedPage(["3"]);
-    else if (path === "/profile") setSelectedPage(["4"]);
   }, [location.pathname]);
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
-      <Sider trigger={null} theme="light" collapsible collapsed={collapsed}>
+      <Sider style={siderStyle} trigger={null} theme="light" collapsible collapsed={collapsed}>
         <div
           className={`capitalize font-bold p-4 text-sm text-slate-900 flex items-center justify-center ${
             !collapsed ? "whitespace-nowrap" : ""
@@ -45,6 +55,7 @@ const MainLayout = ({ children }) => {
           {!collapsed ? "warehouse admin system" : "WAS"}
         </div>
         <Menu
+          className="!border-none"
           theme="light"
           mode="inline"
           selectedKeys={selectedPage}
@@ -68,12 +79,7 @@ const MainLayout = ({ children }) => {
               key: "3",
               icon: <TeamOutlined />,
               label: "Users",
-            },
-            {
-              key: "4",
-              icon: <UserOutlined />,
-              label: "Profile",
-            },
+            }
           ]}
           onClick={({ key }) => {
             if (key === "1") navigate("/dashboard");

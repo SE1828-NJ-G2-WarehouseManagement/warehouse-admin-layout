@@ -10,6 +10,7 @@ import NotFound from "./components/404";
 import WarehouseTable from "./components/pages/ListWarehouses";
 import MainLayout from "./components/MainLayout";
 import UserTable from "./components/pages/ListUser";
+import ListWarehouseReport from "./components/pages/ListWarehouseReport";
 
 const App = () => {
   return (
@@ -32,6 +33,16 @@ const App = () => {
               <ProtectedRoute allowedRoles={[ROLE.ADMIN_WAREHOUSE]}>
                 <MainLayout>
                   <WarehouseTable />
+                </MainLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/warehouses/report"
+            element={
+              <ProtectedRoute allowedRoles={[ROLE.ADMIN_WAREHOUSE]}>
+                <MainLayout>
+                  <ListWarehouseReport />
                 </MainLayout>
               </ProtectedRoute>
             }

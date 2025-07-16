@@ -41,7 +41,7 @@ const FormCreateUser = forwardRef((props, ref) => {
 
       // Step 2: Create FormData to update profile
       const formData = new FormData();
-      formData.append("emailUserUpdate", registeredEmail);
+      formData.append("email", registeredEmail);
       formData.append("username", result.username);
       formData.append("phone", result.phone);
       formData.append("firstName", result.firstName);
