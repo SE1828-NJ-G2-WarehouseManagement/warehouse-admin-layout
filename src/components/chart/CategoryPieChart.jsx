@@ -1,13 +1,13 @@
 import React from "react";
 import { Pie } from "@ant-design/plots";
 
-const CategoryPieChart = () => {
-  const data = [
-    { type: "Đồ đông lạnh", value: 27 },
-    { type: "Hoa quả", value: 25 },
-    { type: "Thịt", value: 18 },
-    { type: "Đồ dễ vỡ", value: 15 },
-  ];
+const CategoryPieChart = ({data}) => {
+  // const data = [
+  //   { type: "Đồ đông lạnh", value: 27 },
+  //   { type: "Hoa quả", value: 25 },
+  //   { type: "Thịt", value: 18 },
+  //   { type: "Đồ dễ vỡ", value: 15 },
+  // ];
 
   const config = {
     data,

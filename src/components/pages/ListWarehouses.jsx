@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   Tag,
@@ -10,9 +10,9 @@ import {
   Dropdown,
 } from "antd";
 import {
+  CheckCircleOutlined,
   DeleteOutlined,
   EditOutlined,
-  EyeOutlined,
   MoreOutlined,
   PlusCircleOutlined,
 } from "@ant-design/icons";
@@ -48,7 +48,6 @@ const WarehouseTable = () => {
       setIsModalCancel(false);
       fetchWarehouse();
       console.log("fetchWarehouse");
-      
     }
   }, [isModalCancel]);
 
@@ -65,17 +64,29 @@ const WarehouseTable = () => {
     },
     {
       key: "delete",
-      icon: <DeleteOutlined />,
-      danger: true,
+      icon:
+        record.status === "ACTIVE" ? (
+          <DeleteOutlined style={{ color: "red" }} />
+        ) : (
+          <CheckCircleOutlined style={{ color: "green" }} />
+        ),
+      danger: record.status === "ACTIVE",
       label: (
         <Popconfirm
-          title="Are you sure you want to delete?"
+          title={`Are you sure you want to ${
+            record.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+          }?`}
           onConfirm={() => handleDelete(record)}
           okText="Yes"
           cancelText="No"
           placement="left"
         >
-          <span style={{ color: "red" }}>Delete</span>
+          <span
+            className="group-hover:!text-white"
+            style={{ color: record.status === "ACTIVE" ? "red" : "green" }}
+          >
+            {record.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"}
+          </span>
         </Popconfirm>
       ),
     },
@@ -87,7 +98,6 @@ const WarehouseTable = () => {
   };
 
   const handleDelete = async (record) => {
-    console.log(record);
     const _id = record._id;
     const status = record.status;
     let newStatus = "INACTIVE";
@@ -212,11 +222,22 @@ const WarehouseTable = () => {
                   <div className="text-xs text-black max-h-40 overflow-y-auto">
                     {record.staffs.map((staff, index) => (
                       <div key={staff._id || index} className="mb-1">
-                        <div><strong>Name:</strong> {staff.firstName} {staff.lastName}</div>
-                        <div><strong>Email:</strong> {staff.email}</div>
-                        <div><strong>Phone:</strong> {staff.phone || 'N/A'}</div>
-                        <div><strong>Username:</strong> {staff.username}</div>
-                        {index < record.staffs.length - 1 && <hr className="my-1" />}
+                        <div>
+                          <strong>Name:</strong> {staff.firstName}{" "}
+                          {staff.lastName}
+                        </div>
+                        <div>
+                          <strong>Email:</strong> {staff.email}
+                        </div>
+                        <div>
+                          <strong>Phone:</strong> {staff.phone || "N/A"}
+                        </div>
+                        <div>
+                          <strong>Username:</strong> {staff.username}
+                        </div>
+                        {index < record.staffs.length - 1 && (
+                          <hr className="my-1" />
+                        )}
                       </div>
                     ))}
                   </div>
@@ -227,7 +248,9 @@ const WarehouseTable = () => {
               placement="left"
               color="white"
             >
-              <span className="cursor-help">{record.staffs.length} person(s)</span>
+              <span className="cursor-help">
+                {record.staffs.length} person(s)
+              </span>
             </Tooltip>
           )}
         />

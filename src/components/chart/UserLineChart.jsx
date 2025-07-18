@@ -1,17 +1,19 @@
 import React from "react";
 import { Line } from "@ant-design/charts";
 
-const UserLineChart = () => {
-  const data = [
-    { year: "1991", users: 3 },
-    { year: "1992", users: 4 },
-    { year: "1993", users: 3.5 },
-    { year: "1994", users: 5 },
-    { year: "1995", users: 4.9 },
-    { year: "1996", users: 6 },
-    { year: "1997", users: 7 },
-    { year: "1998", users: 9 },
-  ];
+const UserLineChart = ({data}) => {
+  // const demo = [
+  //   { year: "1991", users: 3 },
+  //   { year: "1992", users: 4 },
+  //   { year: "1993", users: 3.5 },
+  //   { year: "1994", users: 5 },
+  //   { year: "1995", users: 4.9 },
+  //   { year: "1996", users: 6 },
+  //   { year: "1997", users: 7 },
+  //   { year: "1998", users: 9 },
+  // ];
+
+
 
   const config = {
     data,

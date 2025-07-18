@@ -10,7 +10,7 @@
 
 const Analysis = ({ label, total, icon, desc }) => {
   return (
-    <div className="w-full rounded-2xl overflow-y-auto h-max p-10 border-2 border-[#2593fc] hover:scale-105 ease-in-out duration-150 cursor-pointer">
+    <div className="w-full flex flex-col justify-between rounded-2xl p-10 border-2 border-[#2593fc] hover:scale-105 ease-in-out duration-150 cursor-pointer">
       <div className="flex items-center justify-between">
         {/* left side */}
         <div>

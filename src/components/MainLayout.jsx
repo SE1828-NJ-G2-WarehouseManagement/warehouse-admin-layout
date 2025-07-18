@@ -8,6 +8,7 @@ import {
   TableOutlined,
   TeamOutlined,
   UserOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -71,22 +72,27 @@ const MainLayout = ({ children }) => {
               label: "Warehouses",
               children: [
                 { key: "2.1", icon: <TableOutlined />, label: "List" },
-                { key: "2.2", icon: <BarChartOutlined />, label: "Report" },
               ],
             },
-
             {
               key: "3",
               icon: <TeamOutlined />,
               label: "Users",
+            },
+            {
+              key: "logout",
+              icon: <LogoutOutlined style={{ color: '#1677ff' }} />,
+              label: <span className="text-base font-medium" style={{ color: '#1677ff' }}>Logout</span>,
             }
           ]}
           onClick={({ key }) => {
             if (key === "1") navigate("/dashboard");
             else if (key === "2.1") navigate("/warehouses");
-            else if (key === "2.2") navigate("/warehouses/report");
             else if (key === "3") navigate("/users");
-            else if (key === "4") navigate("/profile");
+            else if (key === "logout") {
+              localStorage.clear();
+              navigate("/login");
+            }
           }}
         />
       </Sider>

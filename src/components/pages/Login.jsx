@@ -71,8 +71,6 @@ const Login = () => {
               <Input.Password size="large" />
             </Form.Item>
 
-            {/* forgot password */}
-            <Link to={"./forgot-password"}>Forgot password ?</Link>
 
             <Form.Item label={null}>
               <Button

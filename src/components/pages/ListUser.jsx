@@ -30,15 +30,15 @@ const UserTable = () => {
   const [isModalCreateUserOpen, setModalCreateUser] = useState(false);
   const formRef = useRef(null);
   const [users, setUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const userService = new UserService();
 
-
-  useEffect(() =>  {
+  useEffect(() => {
     const fetchUsers = async () => {
       const response = await userService.getUsers();
       setUsers(response.data);
-    }
+    };
     fetchUsers();
   }, [isModalCreateUserOpen]);
 
@@ -66,7 +66,6 @@ const UserTable = () => {
     },
   ];
 
-
   const handleEdit = (record) => {
     message.info(`Editing: ${record.username}`);
   };
@@ -77,9 +76,14 @@ const UserTable = () => {
 
   const handleOkCreateUser = async () => {
     if (formRef.current) {
-      const user = await formRef.current.submitForm();
-      if (user) {
-        setModalCreateUser(false);
+      try {
+        setIsLoading(true);
+        const user = await formRef.current.submitForm();
+        if (user) {
+          setModalCreateUser(false);
+        }
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -102,8 +106,12 @@ const UserTable = () => {
           onOk={handleOkCreateUser}
           zIndex={999}
           width={700}
+          confirmLoading={isLoading}
         >
-          <FormCreateUser setModalCreateUser={setModalCreateUser} ref={formRef} />
+          <FormCreateUser
+            setModalCreateUser={setModalCreateUser}
+            ref={formRef}
+          />
         </Modal>
       </div>
       <Table

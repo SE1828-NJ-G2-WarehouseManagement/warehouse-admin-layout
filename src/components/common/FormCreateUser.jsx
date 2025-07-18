@@ -1,25 +1,27 @@
 import React, { forwardRef, useImperativeHandle, useState } from "react";
-import {
-  Form,
-  Input,
-  message,
-  Select,
-  Upload,
-  Button
-} from "antd";
-import {
-  UploadOutlined,
-  DeleteOutlined
-} from "@ant-design/icons";
+import { Form, Input, message, Select, Upload, Button } from "antd";
+import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import UserService from "../../service/userService";
 
 const { Option } = Select;
 
 const FormCreateUser = forwardRef((props, ref) => {
   const [formCreateUser] = Form.useForm();
+
+  /**
+   * State
+   */
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
+
+  /**
+   * Role in parent send
+   */
   const { roleAssigned, setModalCreateUser } = props;
+
+  /**
+   * service
+   */
   const userService = new UserService();
 
   const onFinishCreateUser = async (values) => {
@@ -51,13 +53,24 @@ const FormCreateUser = forwardRef((props, ref) => {
         formData.append("avatar", avatarFile);
       }
 
+
       // Step 3: Call update API
       try {
         const data = await userService.updateUser(formData);
+
+        if (data) {
+          message.success("Tạo người dùng thành công");
+          formCreateUser.resetFields();
+          setAvatarFile(null);
+          setAvatarUrl("");
+        }
+
         return data?.data;
       } catch (updateError) {
-        await userService.deleteUser(registeredEmail);
-        message.error("Lỗi khi cập nhật thông tin người dùng. Đã xoá tài khoản.");
+        //await userService.deleteUser(registeredEmail);
+        message.error(
+          "Lỗi khi cập nhật thông tin người dùng. Đã xoá tài khoản."
+        );
         console.error("Update failed, user deleted:", updateError);
         return null;
       }
@@ -72,7 +85,7 @@ const FormCreateUser = forwardRef((props, ref) => {
       }
       return null;
     } finally {
-      if (typeof setModalCreateUser === 'function') {
+      if (typeof setModalCreateUser === "function") {
         setModalCreateUser(false);
       }
     }
@@ -91,7 +104,7 @@ const FormCreateUser = forwardRef((props, ref) => {
     name: "avatar",
     beforeUpload: (file) => {
       const isImage = file.type.startsWith("image/");
-      const isLt2M = file.size / 1024 / 1024 < 2;
+      const isLt2M = file.size / 1024 / 1024 < 1;
       if (!isImage) {
         message.error("Chỉ được upload ảnh!");
         return false;
@@ -106,14 +119,14 @@ const FormCreateUser = forwardRef((props, ref) => {
     },
     onChange: handleFileChange,
     showUploadList: false,
-    accept: "image/*"
+    accept: "image/*",
   };
 
   useImperativeHandle(ref, () => ({
     submitForm: async () => {
       const values = await formCreateUser.validateFields();
       const data = await onFinishCreateUser(values);
-      return data
+      return data;
     },
   }));
 
@@ -159,7 +172,7 @@ const FormCreateUser = forwardRef((props, ref) => {
         name="firstName"
         rules={[
           { required: true, message: "Please input first name!" },
-          { min: 1, message: "First name must be at least 1 character" }
+          { min: 1, message: "First name must be at least 1 character" },
         ]}
       >
         <Input />
@@ -170,7 +183,7 @@ const FormCreateUser = forwardRef((props, ref) => {
         name="lastName"
         rules={[
           { required: true, message: "Please input last name!" },
-          { min: 1, message: "Last name must be at least 1 character" }
+          { min: 1, message: "Last name must be at least 1 character" },
         ]}
       >
         <Input />
@@ -182,7 +195,7 @@ const FormCreateUser = forwardRef((props, ref) => {
         rules={[
           { required: true, message: "Please input username!" },
           { min: 3, message: "Username must be at least 3 characters" },
-          { max: 30, message: "Username must be at most 30 characters" }
+          { max: 30, message: "Username must be at most 30 characters" },
         ]}
       >
         <Input />
@@ -193,7 +206,7 @@ const FormCreateUser = forwardRef((props, ref) => {
         name="email"
         rules={[
           { required: true, message: "Please input email!" },
-          { type: "email", message: "Please enter a valid email!" }
+          { type: "email", message: "Please enter a valid email!" },
         ]}
       >
         <Input />
@@ -206,8 +219,8 @@ const FormCreateUser = forwardRef((props, ref) => {
           { required: true, message: "Please input phone!" },
           {
             pattern: /^\d{9,11}$/,
-            message: "Phone number must be 9 to 11 digits"
-          }
+            message: "Phone number must be 9 to 11 digits",
+          },
         ]}
       >
         <Input />
