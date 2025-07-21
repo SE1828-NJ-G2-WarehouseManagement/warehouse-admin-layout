@@ -1,4 +1,9 @@
-import React, { forwardRef, useImperativeHandle, useState } from "react";
+import React, {
+  forwardRef,
+  useEffect,
+  useImperativeHandle,
+  useState,
+} from "react";
 import { Form, Input, message, Select, Upload, Button } from "antd";
 import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import UserService from "../../service/userService";
@@ -9,15 +14,36 @@ const FormCreateUser = forwardRef((props, ref) => {
   const [formCreateUser] = Form.useForm();
 
   /**
+   * Role in parent send
+   */
+  const { roleAssigned, setModalCreateUser, record } = props;
+
+  /**
    * State
    */
   const [avatarFile, setAvatarFile] = useState(null);
   const [avatarUrl, setAvatarUrl] = useState("");
 
-  /**
-   * Role in parent send
-   */
-  const { roleAssigned, setModalCreateUser } = props;
+  useEffect(() => {
+    if (record) {
+      console.log(record);
+      formCreateUser.setFieldsValue({
+        firstName: record.firstName,
+        lastName: record.lastName,
+        username: record.username,
+        email: record.email,
+        phone: record.phone,
+        role: record.role,
+      });
+      if (record.avatar) {
+        setAvatarUrl(record.avatar); // record.avatar should be a URL
+      }
+    } else {
+      formCreateUser.resetFields();
+      setAvatarUrl("");
+      setAvatarFile(null);
+    }
+  }, [record]);
 
   /**
    * service
@@ -26,40 +52,37 @@ const FormCreateUser = forwardRef((props, ref) => {
 
   const onFinishCreateUser = async (values) => {
     try {
-      const result = values;
-
       // Step 1: Register user
-      const userRegister = await userService.register(
-        result.email,
-        result.password,
-        roleAssigned || result.role
-      );
-
-      const registeredEmail = userRegister?.data?.email;
-      if (!registeredEmail) {
-        message.error("Không lấy được email từ phản hồi đăng ký!");
-        return null;
+      if (!record) {
+        await userService.register(
+          values.email,
+          values.password,
+          roleAssigned || values.role
+        );
       }
 
       // Step 2: Create FormData to update profile
       const formData = new FormData();
-      formData.append("email", registeredEmail);
-      formData.append("username", result.username);
-      formData.append("phone", result.phone);
-      formData.append("firstName", result.firstName);
-      formData.append("lastName", result.lastName);
+      formData.append("email", values.email);
+      formData.append("username", values.username);
+      formData.append("phone", values.phone);
+      formData.append("firstName", values.firstName);
+      formData.append("lastName", values.lastName);
 
       if (avatarFile) {
         formData.append("avatar", avatarFile);
       }
-
 
       // Step 3: Call update API
       try {
         const data = await userService.updateUser(formData);
 
         if (data) {
-          message.success("Tạo người dùng thành công");
+          message.success(
+            !record
+              ? "Tạo người dùng thành công"
+              : "Cập nhật người dùng thành công"
+          );
           formCreateUser.resetFields();
           setAvatarFile(null);
           setAvatarUrl("");
@@ -67,27 +90,22 @@ const FormCreateUser = forwardRef((props, ref) => {
 
         return data?.data;
       } catch (updateError) {
-        //await userService.deleteUser(registeredEmail);
-        message.error(
-          "Lỗi khi cập nhật thông tin người dùng. Đã xoá tài khoản."
-        );
-        console.error("Update failed, user deleted:", updateError);
+        message.error(updateError.response.data.message);
+        if (!record) {
+          await userService.deleteUser(values.email);
+        }
         return null;
       }
     } catch (error) {
       console.error("Register error:", error);
-      if (error.response?.status === 400) {
-        message.error("Email đã tồn tại!");
+      if (error.response?.status === 400 || error.response?.status === 404) {
+        message.error(error.response.data.message);
       } else if (error.response?.status === 500) {
         message.error("Lỗi máy chủ");
       } else {
         message.error("Lỗi không xác định khi tạo user");
       }
       return null;
-    } finally {
-      if (typeof setModalCreateUser === "function") {
-        setModalCreateUser(false);
-      }
     }
   };
 
@@ -194,7 +212,7 @@ const FormCreateUser = forwardRef((props, ref) => {
         name="username"
         rules={[
           { required: true, message: "Please input username!" },
-          { min: 3, message: "Username must be at least 3 characters" },
+          { min: 1, message: "Username must be at least 3 characters" },
           { max: 30, message: "Username must be at most 30 characters" },
         ]}
       >
@@ -226,13 +244,19 @@ const FormCreateUser = forwardRef((props, ref) => {
         <Input />
       </Form.Item>
 
-      <Form.Item
-        label="Password"
-        name="password"
-        rules={[{ required: true, message: "Please input password!" }]}
-      >
-        <Input.Password />
-      </Form.Item>
+      {!record && (
+        <Form.Item
+          label="Password"
+          name="password"
+          rules={[
+            { required: true, message: "Please input password!" },
+            { min: 9, message: "Username must be at least 9 characters" },
+            { max: 30, message: "Username must be at most 30 characters" },
+          ]}
+        >
+          <Input.Password />
+        </Form.Item>
+      )}
 
       {!roleAssigned && (
         <Form.Item

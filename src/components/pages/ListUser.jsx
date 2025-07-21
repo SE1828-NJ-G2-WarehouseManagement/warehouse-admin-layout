@@ -31,6 +31,7 @@ const UserTable = () => {
   const formRef = useRef(null);
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [recordUpdate, setRecordUpdate] = useState(null);
 
   const userService = new UserService();
 
@@ -67,7 +68,8 @@ const UserTable = () => {
   ];
 
   const handleEdit = (record) => {
-    message.info(`Editing: ${record.username}`);
+    setRecordUpdate(record);
+    setModalCreateUser(true);
   };
 
   const handleDelete = (record) => {
@@ -102,7 +104,10 @@ const UserTable = () => {
         <Modal
           title={"Create User"}
           open={isModalCreateUserOpen}
-          onCancel={() => setModalCreateUser(false)}
+          onCancel={() => {
+            setRecordUpdate(null);
+            setModalCreateUser(false);
+          }}
           onOk={handleOkCreateUser}
           zIndex={999}
           width={700}
@@ -111,6 +116,7 @@ const UserTable = () => {
           <FormCreateUser
             setModalCreateUser={setModalCreateUser}
             ref={formRef}
+            record={recordUpdate}
           />
         </Modal>
       </div>
@@ -120,7 +126,7 @@ const UserTable = () => {
           ...user,
         }))}
         bordered
-        pagination={{ pageSize: 5 }}
+        pagination={{ pageSize: 10 }}
         scroll={{ x: "max-content" }}
       >
         <Column

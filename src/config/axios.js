@@ -25,11 +25,11 @@ axiosInstance.interceptors.response.use(
   (error) => {
     const status = error?.response?.status;
 
-    if (status === 401) {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("user");
-      window.location.href = "/login";
-    }
+    // if (status === 401) {
+    //   localStorage.removeItem("access_token");
+    //   localStorage.removeItem("user");
+    //   window.location.href = "/login";
+    // }
 
     return Promise.reject(error);
   }

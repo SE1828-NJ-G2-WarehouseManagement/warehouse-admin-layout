@@ -138,7 +138,7 @@ const WarehouseTable = () => {
         scroll={{ x: 1300 }}
         bordered
         pagination={{
-          pageSize: "6",
+          pageSize: 10,
         }}
       >
         <Column title="Name" dataIndex="name" key="name" width={150} />

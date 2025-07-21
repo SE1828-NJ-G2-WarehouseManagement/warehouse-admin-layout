@@ -59,10 +59,9 @@ class UserService {
     const response = await axiosInstance.delete(
       `${this.url}/delete-user-by-email`,
       {
-        email,
-      },
-      {
+        data: {email},
         requiresAuth: true,
+
       }
     );
     const { data } = response;
