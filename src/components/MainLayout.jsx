@@ -81,8 +81,8 @@ const MainLayout = ({ children }) => {
             },
             {
               key: "logout",
-              icon: <LogoutOutlined style={{ color: '#1677ff' }} />,
-              label: <span className="text-base font-medium" style={{ color: '#1677ff' }}>Logout</span>,
+              icon: <LogoutOutlined style={{ color: '#ff4d4f' }} />,
+              label: <span className="text-base font-bold" style={{ color: '#ff4d4f' }}>Logout</span>,
             }
           ]}
           onClick={({ key }) => {

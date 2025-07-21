@@ -13,6 +13,14 @@ const { Option } = Select;
 const FormCreateUser = forwardRef((props, ref) => {
   const [formCreateUser] = Form.useForm();
 
+  message.config({
+    top: 60, // distance from top (optional, default is 24)
+    duration: 2, // seconds (optional)
+    maxCount: 3, // optional
+    rtl: false, // optional
+    placement: "topRight", // THIS is the key part
+  });
+
   /**
    * Role in parent send
    */
@@ -227,7 +235,7 @@ const FormCreateUser = forwardRef((props, ref) => {
           { type: "email", message: "Please enter a valid email!" },
         ]}
       >
-        <Input />
+        <Input disabled={record !== null}/>
       </Form.Item>
 
       <Form.Item
@@ -264,7 +272,7 @@ const FormCreateUser = forwardRef((props, ref) => {
           name="role"
           rules={[{ required: true, message: "Please select role!" }]}
         >
-          <Select placeholder="Select a role">
+          <Select disabled={record !== null} placeholder="Select a role">
             <Option value="WAREHOUSE_MANAGER">Warehouse Manager</Option>
             <Option value="WAREHOUSE_STAFF">Warehouse Staff</Option>
           </Select>

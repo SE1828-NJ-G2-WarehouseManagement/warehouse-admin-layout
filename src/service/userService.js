@@ -107,6 +107,24 @@ class UserService {
       return null;
     }
   };
+
+  changeStatus = async (email, status) => {
+    const response = await axiosInstance.put(
+      `${this.url}/update-status`,
+      { email, status },
+      {
+        requiresAuth: true,
+      }
+    );
+
+    const { data } = response;
+
+    if (data && !data.isSuccess) {
+      throw new Error("Update user failed");
+    }
+
+    return data;
+  };
 }
 
 export default UserService;

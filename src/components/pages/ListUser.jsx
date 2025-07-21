@@ -18,6 +18,7 @@ import {
   DeleteOutlined,
   MoreOutlined,
   PlusCircleOutlined,
+  CheckCircleOutlined,
 } from "@ant-design/icons";
 import dayjs from "dayjs";
 import FormCreateUser from "../common/FormCreateUser";
@@ -50,18 +51,28 @@ const UserTable = () => {
       label: <span onClick={() => handleEdit(record)}>Edit</span>,
     },
     {
-      key: "delete",
-      icon: <DeleteOutlined />,
-      danger: true,
+      key: "status-toggle",
+      icon:
+        record.status === "ACTIVE" ? (
+          <DeleteOutlined style={{ color: "#ff4d4f" }} />
+        ) : (
+          <CheckCircleOutlined style={{ color: "green" }} />
+        ),
       label: (
         <Popconfirm
-          title="Are you sure you want to delete?"
-          onConfirm={() => handleDelete(record)}
+          title={`Are you sure you want to ${
+            record.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+          }?`}
+          onConfirm={() => handleStatusToggle(record)}
           okText="Yes"
           cancelText="No"
           placement="left"
         >
-          <span style={{ color: "red" }}>Delete</span>
+          <span
+            style={{ color: record.status === "ACTIVE" ? "#ff4d4f" : "green" }}
+          >
+            {record.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"}
+          </span>
         </Popconfirm>
       ),
     },
@@ -72,8 +83,32 @@ const UserTable = () => {
     setModalCreateUser(true);
   };
 
-  const handleDelete = (record) => {
-    message.success(`Deleted: ${record.username}`);
+  const handleStatusToggle = async (record) => {
+    try {
+      setIsLoading(true);
+      await userService.changeStatus(
+        record.email,
+        record.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+      );
+      message.success(
+        `User status updated to ${
+          record.status === "ACTIVE" ? "INACTIVE" : "ACTIVE"
+        }`
+      );
+      const updatedUsers = users.map((user) =>
+        user._id === record._id
+          ? {
+              ...user,
+              status: record.status === "ACTIVE" ? "INACTIVE" : "ACTIVE",
+            }
+          : user
+      );
+      setUsers(updatedUsers);
+    } catch {
+      message.error("Failed to update user status");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleOkCreateUser = async () => {
@@ -83,6 +118,7 @@ const UserTable = () => {
         const user = await formRef.current.submitForm();
         if (user) {
           setModalCreateUser(false);
+          setRecordUpdate(null);
         }
       } finally {
         setIsLoading(false);
@@ -102,7 +138,7 @@ const UserTable = () => {
         </Button>
 
         <Modal
-          title={"Create User"}
+          title={recordUpdate ? "Update User" : "Create User"}
           open={isModalCreateUserOpen}
           onCancel={() => {
             setRecordUpdate(null);
