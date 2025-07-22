@@ -52,9 +52,11 @@ const FormRequestWarehouse = ({
   const [availableStaffs, setAvailableStaffs] = useState([]);
   const [isModalCreateStaffOpen, setModalCreateStaffOpen] = useState(false);
   const [checkedStaffIds, setCheckedStaffIds] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const userService = new UserService();
   const warehouseService = new WarehouseService();
+
 
   /**
    * fetch user
@@ -283,6 +285,7 @@ const FormRequestWarehouse = ({
    */
   const handleOkCreateUser = async () => {
     if (formRef.current) {
+      setIsLoading(true);
       const user = await formRef.current.submitForm();
       if (user) {
         setSelectedUser(user);
@@ -290,7 +293,9 @@ const FormRequestWarehouse = ({
         setButtonModalStatus(false);
         await fetchUser();
         setModalCreateUser(false);
+        setShowUserInfo(true);
       }
+      setIsLoading(false);
     }
   };
 
@@ -299,18 +304,15 @@ const FormRequestWarehouse = ({
    */
   const handleOkCreateStaff = async () => {
     if (formRef.current) {
+      setIsLoading(true);
       const staff = await formRef.current.submitForm();
-      console.log(staff);
-      
       if (staff) {
-        console.log('fetched staffs');
-        console.log(staff);
-        
         setSelectedStaffs([...selectedStaffs, staff]);
         setCheckedStaffIds([...checkedStaffIds, staff._id]);
         await fetchStaffs();
         setModalCreateStaffOpen(false);
       }
+      setIsLoading(false);
     }
   };
 
@@ -444,14 +446,17 @@ const FormRequestWarehouse = ({
                 Want to create new manager ?
               </span>
               <Modal
-                title={"Create User"}
+                title={"Create Manager"}
                 open={isModalCreateUserOpen}
                 onCancel={() => setModalCreateUser(false)}
                 onOk={handleOkCreateUser}
                 zIndex={999}
                 width={700}
+                confirmLoading={isLoading}
               >
                 <FormCreateUser
+                  record={null}
+                  setIsLoading={setIsLoading}
                   roleAssigned={ROLE.WAREHOUSE_MANAGER}
                   ref={formRef}
                 />
@@ -522,22 +527,22 @@ const FormRequestWarehouse = ({
                 >
                   <Descriptions.Item label="Avatar">
                     {selectedUser.avatar ? (
-                      <Avatar src={selectedUser.avatar} size={64} />
+                      <Avatar src={selectedUser?.avatar} size={64} />
                     ) : (
                       <Avatar size={64} icon={<UserOutlined />} />
                     )}
                   </Descriptions.Item>
                   <Descriptions.Item label="Email">
-                    {selectedUser.email}
+                    {selectedUser?.email}
                   </Descriptions.Item>
                   <Descriptions.Item label="Phone">
-                    {selectedUser.phone || "N/A"}
+                    {selectedUser?.phone || "N/A"}
                   </Descriptions.Item>
                   <Descriptions.Item label="Role">
-                    {selectedUser.role}
+                    {selectedUser?.role}
                   </Descriptions.Item>
                   <Descriptions.Item label="Status">
-                    {selectedUser.status}
+                    {selectedUser?.status}
                   </Descriptions.Item>
                 </Descriptions>
               </div>
@@ -624,8 +629,14 @@ const FormRequestWarehouse = ({
             onOk={handleOkCreateStaff}
             zIndex={999}
             width={700}
+            confirmLoading={isLoading}
           >
-            <FormCreateUser roleAssigned={ROLE.WAREHOUSE_STAFF} ref={formRef} />
+            <FormCreateUser
+              setIsLoading={setIsLoading}
+              record={null}
+              roleAssigned={ROLE.WAREHOUSE_STAFF}
+              ref={formRef}
+            />
           </Modal>
         </div>
       ),

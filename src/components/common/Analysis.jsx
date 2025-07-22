@@ -1,33 +1,29 @@
 /**
- * component for analysis
+ * Refined Analysis Card Layout
  *
- * @param {string} label         the label of the analysis
- * @param {number} total         the total of the analysis
- * @param {React.ReactNode} icon the icon of the analysis
- * @param {string} desc          the description of the analysis
- * @returns
+ * @param {string} label         Title of the analysis
+ * @param {number|string} total  Total value
+ * @param {React.ReactNode} icon Icon node
+ * @param {string} desc          Description text
  */
 
 const Analysis = ({ label, total, icon, desc }) => {
   return (
-    <div className="w-full flex flex-col justify-between rounded-2xl p-10 border-2 border-[#2593fc] hover:scale-105 ease-in-out duration-150 cursor-pointer">
-      <div className="flex items-center justify-between">
-        {/* left side */}
-        <div>
-          <span className="font-base text-xl capitalize font-medium">{label}</span>
-          <h3 className="text-3xl font-bold">{total}</h3>
-        </div>
+    <div className="w-full h-full flex flex-col items-center text-center rounded-2xl border border-[#2593fc] p-6 md:p-8 shadow-sm bg-white transition-all duration-300 hover:shadow-md hover:scale-[1.02] cursor-pointer">
+      
+      {/* Total number (large and bold) */}
+      <h3 className="text-5xl md:text-6xl font-extrabold text-[#0f172a]">{total}</h3>
 
-        {/* right side */}
-        <div className="size-10 rounded-full bg-[#E6F4FF] flex items-center justify-center">
-            {icon}
-        </div>
+      {/* Small icon below number */}
+      <div className="w-8 h-8 mt-3 flex items-center justify-center rounded-full bg-[#E6F4FF] shadow-inner">
+        <span className="text-base text-[#2593fc]">{icon}</span>
       </div>
 
-      {/* description */}
-      <p className="mt-4">
-        {desc}
-      </p>
+      {/* Label */}
+      <h4 className="text-base md:text-lg font-semibold text-[#1d4ed8] mt-4">{label}</h4>
+
+      {/* Description */}
+      <p className="text-sm text-gray-600 leading-relaxed mt-1 px-2">{desc}</p>
     </div>
   );
 };

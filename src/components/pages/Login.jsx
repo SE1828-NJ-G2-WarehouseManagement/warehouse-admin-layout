@@ -6,15 +6,12 @@ import { useAuth } from "../../hooks/useAuth";
 import CenteredSpinner from "../common/SpinnerLoading";
 
 const Login = () => {
-  const { login, user, loading } = useAuth();
+  const { login, loading } = useAuth();
 
   if (loading) {
     return <CenteredSpinner />;
   }
 
-  if (user) {
-    return <Navigate to="/dashboard" replace/>;
-  }
 
   const onFinish = (values) => {
     login(values);

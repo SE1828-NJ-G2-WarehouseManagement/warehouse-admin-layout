@@ -24,7 +24,7 @@ const FormCreateUser = forwardRef((props, ref) => {
   /**
    * Role in parent send
    */
-  const { roleAssigned, setModalCreateUser, record } = props;
+  const { roleAssigned, setModalCreateUser, record, setIsLoading } = props;
 
   /**
    * State
@@ -34,7 +34,6 @@ const FormCreateUser = forwardRef((props, ref) => {
 
   useEffect(() => {
     if (record) {
-      console.log(record);
       formCreateUser.setFieldsValue({
         firstName: record.firstName,
         lastName: record.lastName,
@@ -150,11 +149,21 @@ const FormCreateUser = forwardRef((props, ref) => {
 
   useImperativeHandle(ref, () => ({
     submitForm: async () => {
-      const values = await formCreateUser.validateFields();
-      const data = await onFinishCreateUser(values);
-      return data;
+      try {
+        // Validate form first
+        const values = await formCreateUser.validateFields();
+
+        // If validation passes, proceed with API call
+        const data = await onFinishCreateUser(values);
+        return data;
+      } catch (error) {
+        console.error("Submit error:", error);
+        setIsLoading(false);
+        return null;
+      }
     },
   }));
+
 
   return (
     <Form
@@ -235,7 +244,7 @@ const FormCreateUser = forwardRef((props, ref) => {
           { type: "email", message: "Please enter a valid email!" },
         ]}
       >
-        <Input disabled={record !== null}/>
+        <Input disabled={record !== null} />
       </Form.Item>
 
       <Form.Item
@@ -244,8 +253,8 @@ const FormCreateUser = forwardRef((props, ref) => {
         rules={[
           { required: true, message: "Please input phone!" },
           {
-            pattern: /^\d{9,11}$/,
-            message: "Phone number must be 9 to 11 digits",
+            pattern: /^0\d{9}$/,
+            message: "Phone number must start with 0 and have 10 digits",
           },
         ]}
       >

@@ -6,6 +6,8 @@ import {
   UserDeleteOutlined,
   HomeOutlined,
   StopOutlined,
+  BoxPlotOutlined,
+  HistoryOutlined,
 } from "@ant-design/icons";
 import UserLineChart from "../chart/UserLineChart";
 import CategoryPieChart from "../chart/CategoryPieChart";
@@ -44,6 +46,20 @@ const Dashboard = () => {
       icon: <StopOutlined />,
       key: "warehouse-inactive",
     },
+    {
+      label: "Products In Warehouse",
+      desc: "The number of products are existing in warehouse",
+      total: 0,
+      icon: <BoxPlotOutlined />,
+      key: "products-warehouse",
+    },
+    {
+      label: "Expired Products",
+      desc: "The number of expired products in the warehouse",
+      total: 0,
+      icon: <HistoryOutlined />,
+      key: "expired-item",
+    }
   ]);
 
   const adminService = new AdminService();
@@ -91,7 +107,7 @@ const Dashboard = () => {
         ) : (
           <>
             {/* overview */}
-            <div className="mt-10 grid grid-cols-4 gap-4 items-stretch">
+            <div className="mt-10 grid grid-cols-3 gap-4 items-stretch">
               {(overviewData || []).map(({ key, ...overview }) => (
                 <Analysis key={key} {...overview} />
               ))}

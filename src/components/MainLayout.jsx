@@ -35,6 +35,8 @@ const MainLayout = ({ children }) => {
     scrollbarGutter: 'stable',
   };
 
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
   useEffect(() => {
     const path = location.pathname;
 
@@ -44,6 +46,17 @@ const MainLayout = ({ children }) => {
     else if (path === "/warehouses/report") setSelectedPage(["2.2"]);
     else if (path === "/users") setSelectedPage(["3"]);
   }, [location.pathname]);
+
+  const handleLogout = () => {
+    setIsLoggingOut(true);
+
+    localStorage.clear();
+    // Use setTimeout to ensure cleanup is complete and UI updates before navigation
+    setTimeout(() => {
+      navigate("/login");
+      setIsLoggingOut(false); 
+    }, 100);
+  };
 
   return (
     <Layout style={{ minHeight: "100vh" }}>
@@ -90,8 +103,7 @@ const MainLayout = ({ children }) => {
             else if (key === "2.1") navigate("/warehouses");
             else if (key === "3") navigate("/users");
             else if (key === "logout") {
-              localStorage.clear();
-              navigate("/login");
+              handleLogout();
             }
           }}
         />

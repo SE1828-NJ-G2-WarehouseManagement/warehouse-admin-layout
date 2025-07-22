@@ -73,8 +73,9 @@ class UserService {
     return data;
   };
 
-  getUsers = async () => {
+  getUsers = async (params) => {
     const response = await axiosInstance.get(`${this.url}/`, {
+      params,
       requiresAuth: true,
     });
     const data = response.data;

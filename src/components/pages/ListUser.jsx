@@ -11,6 +11,8 @@ import {
   Dropdown,
   Menu,
   Modal,
+  Select,
+  Input,
 } from "antd";
 import {
   EyeOutlined,
@@ -26,6 +28,8 @@ import UserService from "../../service/userService";
 import defaultAvatar from "../../assets/default-user.png";
 
 const { Column, ColumnGroup } = Table;
+const { Option } = Select;
+const { Search } = Input;
 
 const UserTable = () => {
   const [isModalCreateUserOpen, setModalCreateUser] = useState(false);
@@ -34,15 +38,38 @@ const UserTable = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [recordUpdate, setRecordUpdate] = useState(null);
 
+  const [filterRole, setFilterRole] = useState(null);
+  const [filterStatus, setFilterStatus] = useState(null);
+  const [searchText, setSearchText] = useState("");
+
+  const handleFilterRole = (value) => setFilterRole(value);
+  const handleFilterStatus = (value) => setFilterStatus(value);
+
+  const handleSearchUser = (value) => {
+    setSearchText(value.trim());
+  };
+
   const userService = new UserService();
 
   useEffect(() => {
     const fetchUsers = async () => {
-      const response = await userService.getUsers();
+      const params = {};
+      if (filterRole) {
+        params.role = filterRole;
+      }
+
+      if (filterStatus) {
+        params.status = filterStatus;
+      }
+
+      if (searchText) {
+        params.email = searchText;
+      }
+      const response = await userService.getUsers(params);
       setUsers(response.data);
     };
     fetchUsers();
-  }, [isModalCreateUserOpen]);
+  }, [isModalCreateUserOpen, filterRole, filterStatus, searchText]);
 
   const getMenuItems = (record) => [
     {
@@ -156,6 +183,58 @@ const UserTable = () => {
           />
         </Modal>
       </div>
+
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        {/* Filter by Role */}
+        <div className="flex flex-col">
+          <Select
+            placeholder="Select role"
+            allowClear
+            onChange={handleFilterRole}
+            value={filterRole}
+            className="w-[150px]"
+            size="middle"
+          >
+            <Option value="WAREHOUSE_MANAGER">Manager</Option>
+            <Option value="WAREHOUSE_STAFF">Staff</Option>
+          </Select>
+        </div>
+
+        {/* Filter by Status */}
+        <div className="flex flex-col">
+          <Select
+            placeholder="Select status"
+            allowClear
+            onChange={handleFilterStatus}
+            value={filterStatus}
+            className="w-[120px]"
+            size="middle"
+          >
+            <Option value="ACTIVE">
+              <Tag color="green" className="!text-center">
+                ACTIVE
+              </Tag>
+            </Option>
+            <Option value="INACTIVE">
+              <Tag color="red" className="!text-center">
+                INACTIVE
+              </Tag>
+            </Option>
+          </Select>
+        </div>
+
+        {/* Search by name */}
+        <div className="flex flex-col">
+          <Search
+            placeholder="Enter email"
+            onSearch={handleSearchUser}
+            allowClear
+            className="!w-[300px]"
+            size="middle"
+          />
+        </div>
+      </div>
+
       <Table
         dataSource={users.map((user) => ({
           key: user._id,

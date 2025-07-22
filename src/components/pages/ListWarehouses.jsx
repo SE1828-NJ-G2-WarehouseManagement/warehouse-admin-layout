@@ -8,6 +8,8 @@ import {
   Progress,
   Button,
   Dropdown,
+  Select,
+  Input,
 } from "antd";
 import {
   CheckCircleOutlined,
@@ -18,7 +20,6 @@ import {
 } from "@ant-design/icons";
 import axiosInstance from "../../config/axios";
 import FormRequestWarehouse from "../common/FormRequestWarehouse";
-import UserService from "../../service/userService";
 import WarehouseService from "../../service/warehouseService";
 
 const { Column, ColumnGroup } = Table;
@@ -30,9 +31,31 @@ const WarehouseTable = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isModalCancel, setIsModalCancel] = useState(false);
   const warehouseService = new WarehouseService();
+  const [filterStatus, setFilterStatus] = useState(null);
+  const [searchName, setSearchName] = useState("");
+  const { Option } = Select;
+  const { Search } = Input;
+
+  const handleFilterStatus = (value) => {
+    setFilterStatus(value); // value = "ACTIVE" or "INACTIVE" or undefined (cleared)
+  };
+
+  const handleSearchName = (value) => {
+    setSearchName(value.trim());
+  };
 
   const fetchWarehouse = async () => {
-    const response = await axiosInstance.get("/warehouses", {
+    const params = {};
+
+    if (filterStatus) {
+      params.status = filterStatus;
+    }
+
+    if (searchName) {
+      params.name = searchName;
+    }
+    const response = await axiosInstance.get(`/warehouses`, {
+      params,
       requiresAuth: true,
     });
     setWarehouses(response.data.data);
@@ -41,7 +64,7 @@ const WarehouseTable = () => {
 
   useEffect(() => {
     fetchWarehouse();
-  }, []);
+  }, [filterStatus, searchName]);
 
   useEffect(() => {
     if (isModalCancel) {
@@ -70,7 +93,6 @@ const WarehouseTable = () => {
         ) : (
           <CheckCircleOutlined style={{ color: "green" }} />
         ),
-      danger: record.status === "ACTIVE",
       label: (
         <Popconfirm
           title={`Are you sure you want to ${
@@ -105,7 +127,6 @@ const WarehouseTable = () => {
       newStatus = "ACTIVE";
     }
     const response = await warehouseService.changeStatus(_id, newStatus);
-    console.log(`response: ${response}`);
     if (response.status === 500) {
       message.error(response.data.message);
       return;
@@ -116,15 +137,21 @@ const WarehouseTable = () => {
 
   return (
     <>
+      {/* Row 1: Title and Add Button */}
       <div className="flex items-center justify-between mb-2">
-        <h1 className="text-xl font-medium capitalize">List warehouses</h1>
+        {/* Title */}
+        <h1 className="text-xl font-medium capitalize whitespace-nowrap">
+          List warehouses
+        </h1>
 
+        {/* Add Button */}
         <Button type="primary" onClick={() => handleEdit(null)}>
           <Tooltip title="Add New Warehouse">
             <PlusCircleOutlined />
           </Tooltip>
         </Button>
 
+        {/* Modal */}
         <FormRequestWarehouse
           isModalOpen={isModalOpen}
           setIsModalOpen={setIsModalOpen}
@@ -133,6 +160,44 @@ const WarehouseTable = () => {
           listWarehouseName={listWarehouseName}
         />
       </div>
+
+      {/* Row 2: Filters */}
+      <div className="flex items-center gap-3 mb-4 flex-wrap">
+        {/* Filter by Status */}
+        <div className="flex flex-col">
+          <Select
+            placeholder="Status"
+            allowClear
+            onChange={handleFilterStatus}
+            value={filterStatus}
+            className="min-w-[120px]"
+            size="middle"
+          >
+            <Option value="ACTIVE">
+              <Tag className="!text-center" color="green">
+                ACTIVE
+              </Tag>
+            </Option>
+            <Option value="INACTIVE">
+              <Tag className="!text-center" color="red">
+                INACTIVE
+              </Tag>
+            </Option>
+          </Select>
+        </div>
+
+        {/* Search by Name */}
+        <div className="flex flex-col">
+          <Search
+            placeholder="Search name"
+            onSearch={handleSearchName}
+            allowClear
+            className="w-[160px]"
+            size="middle"
+          />
+        </div>
+      </div>
+
       <Table
         dataSource={warehouseData}
         scroll={{ x: 1300 }}
