@@ -116,7 +116,7 @@ const Dashboard = () => {
 
             {/* chart analysis */}
             <div className="my-10">
-              <WarehouseDetail data={data?.warehouseDetails}/>
+              <WarehouseDetail data={data?.warehouse?.warehouseDetails}/>
             </div>
 
             <div className="my-10">

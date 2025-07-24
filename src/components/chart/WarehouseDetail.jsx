@@ -60,7 +60,6 @@ const WarehouseDetail = ({ data }) => {
           Report Detail For Warehouses
         </span>
       }
-      bordered
       style={{ margin: '24px 0', boxShadow: '0 4px 12px rgba(0,0,0,0.06)' }}
     >
       <Table
