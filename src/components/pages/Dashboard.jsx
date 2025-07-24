@@ -13,6 +13,7 @@ import UserLineChart from "../chart/UserLineChart";
 import CategoryPieChart from "../chart/CategoryPieChart";
 import TransactionColumnChart from "../chart/TransasctionColumnChart";
 import AdminService from "../../service/adminService";
+import WarehouseDetail from "../chart/WarehouseDetail";
 
 const Dashboard = () => {
   const [data, setData] = useState({});
@@ -114,6 +115,10 @@ const Dashboard = () => {
             </div>
 
             {/* chart analysis */}
+            <div className="my-10">
+              <WarehouseDetail data={data?.warehouseDetails}/>
+            </div>
+
             <div className="my-10">
               <h3 className="text-xl font-medium mb-2 cursor-pointer hover:text-blue-800 duration-150">
                 User System Analysis
