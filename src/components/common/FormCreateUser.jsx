@@ -267,8 +267,8 @@ const FormCreateUser = forwardRef((props, ref) => {
           name="password"
           rules={[
             { required: true, message: "Please input password!" },
-            { min: 9, message: "Username must be at least 9 characters" },
-            { max: 30, message: "Username must be at most 30 characters" },
+            { min: 9, message: "Password must be at least 9 characters" },
+            { max: 30, message: "Password must be at most 30 characters" },
           ]}
         >
           <Input.Password />
