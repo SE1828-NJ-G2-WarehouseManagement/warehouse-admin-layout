@@ -71,6 +71,7 @@ const FormRequestWarehouse = ({
         (user) =>
           user.role === ROLE.WAREHOUSE_MANAGER &&
           user.assignedWarehouse === null
+          && user.status === 'ACTIVE'
       );
       setUsers(filterManger);
     } catch (error) {
