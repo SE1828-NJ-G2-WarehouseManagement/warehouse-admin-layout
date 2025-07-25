@@ -57,7 +57,6 @@ const FormRequestWarehouse = ({
   const userService = new UserService();
   const warehouseService = new WarehouseService();
 
-
   /**
    * fetch user
    * get all users
@@ -70,8 +69,8 @@ const FormRequestWarehouse = ({
       const filterManger = data.data.filter(
         (user) =>
           user.role === ROLE.WAREHOUSE_MANAGER &&
-          user.assignedWarehouse === null
-          && user.status === 'ACTIVE'
+          user.assignedWarehouse === null &&
+          user.status === "ACTIVE"
       );
       setUsers(filterManger);
     } catch (error) {
@@ -90,7 +89,8 @@ const FormRequestWarehouse = ({
     const staffs = data.filter(
       (user) =>
         (user.role === ROLE.WAREHOUSE_STAFF &&
-          user.assignedWarehouse === null) ||
+          user.assignedWarehouse === null &&
+          user.status === "ACTIVE") ||
         record?.staffs?.some((staff) => staff._id === user._id)
     );
     setAvailableStaffs(staffs);
