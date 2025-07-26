@@ -215,6 +215,7 @@ const WarehouseTable = () => {
             dataIndex="currentCapacity"
             key="currentCapacity"
             width={100}
+            render={(value) => `${(value * 100).toFixed(2)}`}
           />
           <Column
             title="Total"
